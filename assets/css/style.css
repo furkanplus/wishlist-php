@@ -246,6 +246,7 @@ h1 {
 }
 
 .item-image-wrapper {
+    display: block;
     position: relative;
     width: 100%;
     padding-top: 75%; /* 4:3 Aspect Ratio */
@@ -307,6 +308,16 @@ h1 {
     -webkit-box-orient: vertical;
     overflow: hidden;
     height: 2.9rem; /* Keeps titles aligned */
+}
+
+.item-title a {
+    color: inherit;
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.item-title a:hover {
+    color: var(--primary);
 }
 
 .item-notes {
@@ -887,6 +898,31 @@ tr:hover td {
 .lang-dropdown option {
     background-color: var(--bg-main);
     color: var(--text-primary);
+}
+
+/* Translation Warning Styles */
+.flash-warning {
+    background: rgba(245, 158, 11, 0.15);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    color: var(--warning);
+}
+
+.translation-textarea.empty-warning {
+    border-color: rgba(245, 158, 11, 0.4);
+    background: rgba(245, 158, 11, 0.03);
+}
+
+.translation-textarea.empty-warning:focus {
+    border-color: var(--warning);
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+}
+
+.empty-fallback-badge {
+    font-size: 0.75rem;
+    color: var(--warning);
+    font-weight: 500;
+    margin-top: 0.25rem;
+    display: inline-block;
 }
 
 

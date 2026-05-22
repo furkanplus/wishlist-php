@@ -303,4 +303,46 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
+
+    // --- Live Translation Validation & Warnings ---
+    const textareas = document.querySelectorAll('.translation-textarea');
+    const warningBanner = document.getElementById('empty-translations-warning');
+    const warningCountEl = document.getElementById('empty-translations-count');
+
+    function updateEmptyWarnings() {
+        let emptyCount = 0;
+        textareas.forEach(textarea => {
+            const val = textarea.value.trim();
+            const badge = textarea.nextElementSibling; // the .empty-fallback-badge span
+            if (val === '') {
+                emptyCount++;
+                textarea.classList.add('empty-warning');
+                if (badge) {
+                    badge.style.display = 'inline-block';
+                }
+            } else {
+                textarea.classList.remove('empty-warning');
+                if (badge) {
+                    badge.style.display = 'none';
+                }
+            }
+        });
+
+        if (warningBanner && warningCountEl) {
+            if (emptyCount > 0) {
+                warningCountEl.textContent = emptyCount;
+                warningBanner.style.display = 'flex';
+            } else {
+                warningBanner.style.display = 'none';
+            }
+        }
+    }
+
+    if (textareas.length > 0) {
+        textareas.forEach(textarea => {
+            textarea.addEventListener('input', updateEmptyWarnings);
+        });
+        // Run once on load to sync
+        updateEmptyWarnings();
+    }
 });

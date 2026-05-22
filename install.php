@@ -82,7 +82,7 @@ $success = false;
 $generatedConfigCode = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $db_host = trim($_POST['db_host'] ?? '127.0.0.1');
+    $db_host = trim($_POST['db_host'] ?? 'localhost');
     $db_port = trim($_POST['db_port'] ?? '3306');
     $db_name = trim($_POST['db_name'] ?? 'wishlist_db');
     $db_user = trim($_POST['db_user'] ?? '');
@@ -98,22 +98,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Admin passwords do not match.';
     } else {
         try {
-            // 1. Try to connect to MySQL without selecting database (in case it needs to be created)
-            $dsn_no_db = "mysql:host={$db_host};port={$db_port};charset=utf8mb4";
-            $pdo_init = new PDO($dsn_no_db, $db_user, $db_pass, [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_TIMEOUT => 5
-            ]);
-            
-            // Create database
-            $pdo_init->exec("CREATE DATABASE IF NOT EXISTS `{$db_name}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-            $pdo_init = null; // close connection
-            
-            // 2. Connect to the new database
-            $dsn = "mysql:host={$db_host};port={$db_port};dbname={$db_name};charset=utf8mb4";
-            $pdo = new PDO($dsn, $db_user, $db_pass, [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
-            ]);
+            // 1. Try to connect directly to the database first
+            try {
+                $dsn = "mysql:host={$db_host};port={$db_port};dbname={$db_name};charset=utf8mb4";
+                $pdo = new PDO($dsn, $db_user, $db_pass, [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_TIMEOUT => 5
+                ]);
+            } catch (PDOException $e) {
+                // 2. If direct connection fails, try to connect without selecting a db to create it
+                $dsn_no_db = "mysql:host={$db_host};port={$db_port};charset=utf8mb4";
+                $pdo_init = new PDO($dsn_no_db, $db_user, $db_pass, [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_TIMEOUT => 5
+                ]);
+                $pdo_init->exec("CREATE DATABASE IF NOT EXISTS `{$db_name}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+                $pdo_init = null; // close connection
+                
+                // Try connecting to the newly created database
+                $pdo = new PDO($dsn, $db_user, $db_pass, [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+                ]);
+            }
             
             // 3. Load and execute schema
             if (!file_exists($schemaFile)) {
@@ -330,7 +336,7 @@ function isShippingAddressVisible() {
                         
                         <div class="form-group">
                             <label for="db_host">Database Host (usually localhost or 127.0.0.1)</label>
-                            <input type="text" id="db_host" name="db_host" value="127.0.0.1" required>
+                            <input type="text" id="db_host" name="db_host" value="localhost" required>
                         </div>
 
                         <div class="form-group">

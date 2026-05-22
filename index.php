@@ -82,7 +82,10 @@ if (!function_exists('__')) {
             }
         }
         
-        return $translations[$key] ?? $default;
+        if (isset($translations[$key]) && trim($translations[$key]) !== '') {
+            return $translations[$key];
+        }
+        return $default;
     }
 }
 
@@ -182,7 +185,7 @@ try {
                                 <span class="bought-badge"><?= h(__('bought_badge', 'BOUGHT')) ?></span>
                             <?php endif; ?>
 
-                            <div class="item-image-wrapper">
+                            <a href="<?= h($item['url']) ?>" target="_blank" rel="noopener noreferrer" class="item-image-wrapper">
                                 <?php if ($item['image_url']): ?>
                                     <img src="<?= h($item['image_url']) ?>" alt="<?= h($item['title']) ?>" class="item-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                     <div class="item-placeholder" style="display:none;">
@@ -195,10 +198,14 @@ try {
                                         <span><?= h(__('no_image_provided', 'No Image')) ?></span>
                                     </div>
                                 <?php endif; ?>
-                            </div>
+                            </a>
 
                             <div class="item-content">
-                                <h4 class="item-title" title="<?= h($item['title']) ?>"><?= h($item['title']) ?></h4>
+                                <h4 class="item-title" title="<?= h($item['title']) ?>">
+                                    <a href="<?= h($item['url']) ?>" target="_blank" rel="noopener noreferrer">
+                                        <?= h($item['title']) ?>
+                                    </a>
+                                </h4>
                                 
                                 <?php if ($item['notes']): ?>
                                     <p class="item-notes" title="<?= h($item['notes']) ?>"><?= h($item['notes']) ?></p>

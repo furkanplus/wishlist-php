@@ -82,7 +82,10 @@ if (!function_exists('__')) {
             }
         }
         
-        return $translations[$key] ?? $default;
+        if (isset($translations[$key]) && trim($translations[$key]) !== '') {
+            return $translations[$key];
+        }
+        return $default;
     }
 }
 

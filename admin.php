@@ -82,7 +82,10 @@ if (!function_exists('__')) {
             }
         }
         
-        return $translations[$key] ?? $default;
+        if (isset($translations[$key]) && trim($translations[$key]) !== '') {
+            return $translations[$key];
+        }
+        return $default;
     }
 }
 
@@ -1157,6 +1160,21 @@ if (file_exists($editTrFile)) {
                     </form>
                 </div>
                 
+                <!-- Empty Translations Warning Banner -->
+                <?php
+                $emptyCount = 0;
+                foreach ($translationKeys as $key => $meta) {
+                    if (trim($editTranslations[$key] ?? '') === '') {
+                        $emptyCount++;
+                    }
+                }
+                ?>
+                <div id="empty-translations-warning" class="flash-message flash-warning" style="display: <?= $emptyCount > 0 ? 'flex' : 'none' ?>; margin-bottom: 1.5rem;">
+                    <div>
+                        <strong>⚠️ Notice:</strong> <span id="empty-translations-count"><?= $emptyCount ?></span> translation box(es) are empty. They will default to their English versions on the public page.
+                    </div>
+                </div>
+
                 <!-- Search bar for filtering -->
                 <div class="translation-search-container mb-4" style="position: relative;">
                     <span class="translation-search-icon">🔍</span>
@@ -1187,7 +1205,12 @@ if (file_exists($editTrFile)) {
                                         </td>
                                         <td style="white-space: pre-wrap;"><?= h($meta['default']) ?></td>
                                         <td>
-                                            <textarea name="translations[<?= h($key) ?>]" class="translation-textarea" placeholder="Enter <?= h(strtoupper($editLang)) ?> translation..."><?= h($currentVal) ?></textarea>
+                                            <div style="display: flex; flex-direction: column;">
+                                                <textarea name="translations[<?= h($key) ?>]" class="translation-textarea <?= trim($currentVal) === '' ? 'empty-warning' : '' ?>" placeholder="Enter <?= h(strtoupper($editLang)) ?> translation..."><?= h($currentVal) ?></textarea>
+                                                <span class="empty-fallback-badge" style="display: <?= trim($currentVal) === '' ? 'inline-block' : 'none' ?>;">
+                                                    ⚠️ Empty: Falls back to "<?= h($meta['default']) ?>"
+                                                </span>
+                                            </div>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
