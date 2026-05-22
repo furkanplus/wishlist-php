@@ -108,4 +108,11 @@ To add a new language:
 ---
 ## License
 
-This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**. 
+This project is licensed under the **GNU AGPLv3 with the Commons Clause**.
+
+### What this means:
+* **Source-Available & Open:** Anyone can view, copy, fork, and edit the code.
+* **Viral Open-Source:** Any changes or additions you make to this code must also be made publicly available under these exact terms.
+* **Strictly Non-Commercial:** You are **not** permitted to sell this software, bundle it into a commercial product, or charge users a subscription fee to access a hosted version of it.
+
+For more details, see the [LICENSE] file.
