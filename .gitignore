@@ -10,5 +10,8 @@ Thumbs.db
 *.ps1   
 
 #other
-.idea
-.vscode
+*.idea
+*.vscode
+*.swp
+*.agent
+
