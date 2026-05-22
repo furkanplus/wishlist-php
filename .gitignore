@@ -4,3 +4,11 @@ config.php
 # OS metadata
 .DS_Store
 Thumbs.db
+
+#scripts 
+*.sh
+*.ps1   
+
+#other
+.idea
+.vscode
