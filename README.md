@@ -106,7 +106,6 @@ To add a new language:
 5. Visitors can now toggle between the languages using the switcher at the top of the homepage.
 
 ---
+## License
 
-## 📄 License
-
-This project is open-source and licensed under the [MIT License](LICENSE). Feel free to use, modify, and distribute it.
+This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**. 
