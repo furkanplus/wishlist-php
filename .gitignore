@@ -1,0 +1,6 @@
+# Ignore local configuration file containing database credentials
+config.php
+
+# OS metadata
+.DS_Store
+Thumbs.db
