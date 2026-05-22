@@ -709,3 +709,184 @@ tr:hover td {
 .text-xs { font-size: 0.75rem; }
 .text-sm { font-size: 0.85rem; }
 .font-bold { font-weight: 700; }
+
+/* Language Selector */
+.lang-selector {
+    display: inline-flex;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    padding: 2px;
+    border-radius: var(--radius-sm);
+    gap: 2px;
+    align-items: center;
+}
+
+.lang-btn {
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border-radius: 4px;
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+.lang-btn:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.lang-btn.active {
+    color: var(--text-primary);
+    background: var(--primary);
+    box-shadow: 0 2px 6px rgba(99, 102, 241, 0.3);
+}
+
+/* Admin Tab Navigation */
+.tab-navigation {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 2px;
+    overflow-x: auto;
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 0.75rem 1.25rem;
+    cursor: pointer;
+    transition: var(--transition);
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    position: relative;
+    white-space: nowrap;
+}
+
+.tab-btn:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.tab-btn.active {
+    color: var(--primary);
+}
+
+.tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--primary);
+    box-shadow: 0 -2px 10px var(--primary);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Translation Management Panel */
+.translation-search-container {
+    margin-bottom: 1.5rem;
+    position: relative;
+    width: 100%;
+}
+
+.translation-search-container input {
+    padding-left: 2.5rem;
+}
+
+.translation-search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+.translation-table th {
+    font-family: var(--font-heading);
+}
+
+.translation-row-key {
+    font-family: monospace;
+    font-size: 0.8rem;
+    color: var(--accent);
+}
+
+.translation-row-desc {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+    display: block;
+}
+
+.translation-textarea {
+    width: 100%;
+    resize: vertical;
+    min-height: 50px;
+    font-size: 0.9rem;
+    padding: 0.5rem;
+}
+
+/* Premium Dropdown Language Selector */
+.lang-select-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.lang-select-wrapper::after {
+    content: '▼';
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+.lang-dropdown {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    padding: 6px 28px 6px 12px; /* Extra padding on right for the arrow */
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+
+.lang-dropdown:hover {
+    border-color: var(--border-color-focus);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.lang-dropdown:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
+/* Ensure options have dark backgrounds on all systems */
+.lang-dropdown option {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+}
+
+

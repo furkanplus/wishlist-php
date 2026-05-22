@@ -244,4 +244,63 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Failed to communicate with sorting server:', err);
         });
     }
+
+    // --- Tab Switching ---
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    if (tabBtns.length > 0) {
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetTab = btn.dataset.tab;
+
+                tabBtns.forEach(b => b.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+
+                btn.classList.add('active');
+                const contentEl = document.getElementById('tab-' + targetTab);
+                if (contentEl) {
+                    contentEl.classList.add('active');
+                }
+
+                localStorage.setItem('active_admin_tab', targetTab);
+            });
+        });
+
+        // Restore active tab (prefer location hash, then localStorage)
+        let activeTab = 'items';
+        if (window.location.hash && document.getElementById('tab-' + window.location.hash.substring(1).replace('tab-', ''))) {
+            activeTab = window.location.hash.substring(1).replace('tab-', '');
+        } else {
+            activeTab = localStorage.getItem('active_admin_tab') || 'items';
+        }
+        const activeBtn = document.querySelector(`.tab-btn[data-tab="${activeTab}"]`);
+        if (activeBtn) {
+            activeBtn.click();
+        } else if (tabBtns[0]) {
+            tabBtns[0].click();
+        }
+    }
+
+    // --- Translation Filter ---
+    const trSearch = document.getElementById('translation-search');
+    const trRows = document.querySelectorAll('.translation-row');
+
+    if (trSearch) {
+        trSearch.addEventListener('input', () => {
+            const query = trSearch.value.toLowerCase().trim();
+
+            trRows.forEach(row => {
+                const key = row.dataset.key ? row.dataset.key.toLowerCase() : '';
+                const defaultValue = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                const currentValue = row.querySelector('textarea').value.toLowerCase();
+
+                if (key.includes(query) || defaultValue.includes(query) || currentValue.includes(query)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    }
 });

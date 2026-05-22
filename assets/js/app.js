@@ -100,8 +100,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const buyerName = buyerNameInput.value.trim();
             const buyerProof = buyerProofInput.value.trim();
 
+            const t = window.translations || {};
+
             if (!buyerProof) {
-                modalError.textContent = 'Verification proof (Tracking Link or Order ID) is required.';
+                modalError.textContent = t.verification_required || 'Verification proof (Tracking Link or Order ID) is required.';
                 modalError.style.display = 'block';
                 return;
             }
@@ -109,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
             modalError.style.display = 'none';
             const submitBtn = formMarkBought.querySelector('button[type="submit"]');
             submitBtn.disabled = true;
-            submitBtn.textContent = 'Verifying...';
+            submitBtn.textContent = t.verifying || 'Verifying...';
 
             fetch('api/mark-bought.php', {
                 method: 'POST',
@@ -125,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(res => res.json())
             .then(data => {
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Confirm Purchase';
+                submitBtn.textContent = t.confirm_purchase || 'Confirm Purchase';
 
                 if (data.success) {
                     // Show success checkmark content
@@ -144,8 +146,8 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .catch(err => {
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Confirm Purchase';
-                modalError.textContent = 'Unable to contact the server. Please check your network connection.';
+                submitBtn.textContent = t.confirm_purchase || 'Confirm Purchase';
+                modalError.textContent = t.network_error || 'Unable to contact the server. Please check your network connection.';
                 modalError.style.display = 'block';
                 console.error('Mark bought failure:', err);
             });
