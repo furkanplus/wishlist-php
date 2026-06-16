@@ -106,7 +106,13 @@ To add a new language:
 5. Visitors can now toggle between the languages using the switcher at the top of the homepage.
 
 ---
+## License
 
-## 📄 License
+This project is licensed under the **GNU AGPLv3 with the Commons Clause**.
 
-This project is open-source and licensed under the [MIT License](LICENSE). Feel free to use, modify, and distribute it.
+### What this means:
+* **Source-Available & Open:** Anyone can view, copy, fork, and edit the code.
+* **Viral Open-Source:** Any changes or additions you make to this code must also be made publicly available under these exact terms.
+* **Strictly Non-Commercial:** You are **not** permitted to sell this software, bundle it into a commercial product, or charge users a subscription fee to access a hosted version of it.
+
+For more details, see the [LICENSE] file.
