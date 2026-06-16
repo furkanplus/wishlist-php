@@ -345,4 +345,135 @@ document.addEventListener('DOMContentLoaded', () => {
         // Run once on load to sync
         updateEmptyWarnings();
     }
+
+    // --- Theme Live Customizer & Presets ---
+    const presets = {
+        default: {
+            primary: '#ff003c',
+            accent: '#00e5ff',
+            background: '#050a0e',
+            card: '#0b161d',
+            'text-primary': '#ffffff',
+            'text-secondary': '#a0a0a0'
+        },
+        emerald: {
+            primary: '#10b981',
+            accent: '#34d399',
+            background: '#064e3b',
+            card: '#065f46',
+            'text-primary': '#ecfdf5',
+            'text-secondary': '#a7f3d0'
+        },
+        sunset: {
+            primary: '#f59e0b',
+            accent: '#ec4899',
+            background: '#180f03',
+            card: '#2a1b08',
+            'text-primary': '#fffbeb',
+            'text-secondary': '#fde68a'
+        },
+        ocean: {
+            primary: '#06b6d4',
+            accent: '#3b82f6',
+            background: '#030712',
+            card: '#0b1329',
+            'text-primary': '#f0f9ff',
+            'text-secondary': '#bae6fd'
+        },
+        sakura: {
+            primary: '#f43f5e',
+            accent: '#a855f7',
+            background: '#1c0d12',
+            card: '#2d1520',
+            'text-primary': '#fff1f2',
+            'text-secondary': '#fecdd3'
+        },
+        dracula: {
+            primary: '#bd93f9',
+            accent: '#ff79c6',
+            background: '#1e1f29',
+            card: '#282a36',
+            'text-primary': '#f8f8f2',
+            'text-secondary': '#6272a4'
+        }
+    };
+
+    function applyPreset(name) {
+        const preset = presets[name];
+        if (!preset) return;
+        
+        Object.entries(preset).forEach(([key, val]) => {
+            const el = document.getElementById(`theme-${key}`);
+            if (el) {
+                el.value = val;
+                // Dispatch both input and change events to notify preview listeners
+                el.dispatchEvent(new Event('input', { bubbles: true }));
+                el.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        });
+    }
+
+    // Bind event listeners to preset buttons
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            applyPreset(btn.dataset.preset);
+        });
+    });
+
+    function hexToRgb(hex) {
+        hex = hex.replace('#', '');
+        let r, g, b;
+        if (hex.length === 3) {
+            r = parseInt(hex[0] + hex[0], 16);
+            g = parseInt(hex[1] + hex[1], 16);
+            b = parseInt(hex[2] + hex[2], 16);
+        } else {
+            r = parseInt(hex.substring(0, 2), 16);
+            g = parseInt(hex.substring(2, 4), 16);
+            b = parseInt(hex.substring(4, 6), 16);
+        }
+        return `${r}, ${g}, ${b}`;
+    }
+
+    function updateColor(varName, value) {
+        document.documentElement.style.setProperty(varName, value);
+        if (varName === '--primary') {
+            const rgb = hexToRgb(value);
+            document.documentElement.style.setProperty('--primary-glow', `rgba(${rgb}, 0.15)`);
+            document.documentElement.style.setProperty('--border-color-focus', `rgba(${rgb}, 0.5)`);
+        }
+    }
+
+    function updateCardColor(value) {
+        const rgb = hexToRgb(value);
+        document.documentElement.style.setProperty('--bg-card', `rgba(${rgb}, 0.6)`);
+        document.documentElement.style.setProperty('--bg-card-hover', `rgba(${rgb}, 0.8)`);
+    }
+
+    function updateBodyGradient() {
+        const primaryEl = document.getElementById('theme-primary');
+        const accentEl = document.getElementById('theme-accent');
+        if (!primaryEl || !accentEl) return;
+        const rgbPrimary = hexToRgb(primaryEl.value);
+        const rgbAccent = hexToRgb(accentEl.value);
+        document.body.style.backgroundImage = `
+            radial-gradient(at 0% 0%, rgba(${rgbPrimary}, 0.08) 0px, transparent 50%),
+            radial-gradient(at 100% 100%, rgba(${rgbAccent}, 0.08) 0px, transparent 50%)
+        `;
+    }
+
+    document.querySelectorAll('.theme-color-picker').forEach(picker => {
+        picker.addEventListener('input', (e) => {
+            const varName = e.target.dataset.var;
+            const value = e.target.value;
+            if (varName === '--bg-card') {
+                updateCardColor(value);
+            } else {
+                updateColor(varName, value);
+            }
+            if (varName === '--primary' || varName === '--accent') {
+                updateBodyGradient();
+            }
+        });
+    });
 });

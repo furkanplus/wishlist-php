@@ -84,7 +84,10 @@ $generatedConfigCode = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $db_host = trim($_POST['db_host'] ?? 'localhost');
     $db_port = trim($_POST['db_port'] ?? '3306');
-    $db_name = trim($_POST['db_name'] ?? 'wishlist_db');
+    $db_name = trim($_POST['db_name'] ?? '');
+    if ($db_name === '') {
+        $db_name = 'wishlist_db';
+    }
     $db_user = trim($_POST['db_user'] ?? '');
     $db_pass = $_POST['db_pass'] ?? '';
     
@@ -92,7 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $admin_pass = $_POST['admin_pass'] ?? '';
     $admin_pass_confirm = $_POST['admin_pass_confirm'] ?? '';
     
-    if (empty($db_user) || empty($db_name) || empty($admin_user) || empty($admin_pass)) {
+    if (empty($db_user) || empty($admin_user) || empty($admin_pass)) {
         $error = 'Please fill out all required fields.';
     } elseif ($admin_pass !== $admin_pass_confirm) {
         $error = 'Admin passwords do not match.';
@@ -346,7 +349,7 @@ function isShippingAddressVisible() {
 
                         <div class="form-group">
                             <label for="db_name">Database Name (will create if doesn't exist)</label>
-                            <input type="text" id="db_name" name="db_name" value="wishlist_db" required>
+                            <input type="text" id="db_name" name="db_name" value="wishlist_db">
                         </div>
 
                         <div class="form-group">

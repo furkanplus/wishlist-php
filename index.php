@@ -113,6 +113,7 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= h(__('index_title', 'Shared Wishlist')) ?></title>
     <link rel="stylesheet" href="assets/css/style.css">
+    <?php echo getCustomStyles(); ?>
     <script>
         window.translations = {
             verification_required: <?= json_encode(__('js_verification_required', 'Verification proof (Tracking Link or Order ID) is required.')) ?>,
@@ -262,6 +263,16 @@ try {
                         <label for="buyer-proof"><?= h(__('buyer_proof_label', 'Tracking Link OR Order ID (Required)')) ?></label>
                         <input type="text" id="buyer-proof" placeholder="<?= h(__('buyer_proof_placeholder', 'e.g. UPS link or Amazon Order ID')) ?>" required>
                         <span class="text-xs text-muted"><?= h(__('buyer_proof_desc', 'This proof will only be visible to the wishlist owner to verify the purchase.')) ?></span>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="add-message-toggle">
+                        <label for="add-message-toggle"><?= h(__('add_message_checkbox', 'Add a message/note')) ?></label>
+                    </div>
+
+                    <div class="form-group" id="message-group" style="display: none; margin-top: -0.5rem; margin-bottom: 1.25rem;">
+                        <label for="buyer-message"><?= h(__('buyer_message_label', 'Message (Visible only to owner)')) ?></label>
+                        <textarea id="buyer-message" rows="3" placeholder="<?= h(__('buyer_message_placeholder', 'e.g. Hope you like it! Happy holidays!')) ?>"></textarea>
                     </div>
 
                     <div id="modal-error" class="flash-message flash-danger" style="display: none; margin-top: 1rem;"></div>

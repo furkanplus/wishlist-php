@@ -495,6 +495,58 @@ $translationKeys = [
     'admin_save_changes' => [
         'desc' => 'Button to submit edit item changes',
         'default' => 'Save Changes'
+    ],
+    'admin_theme_settings' => [
+        'desc' => 'Card header for theme settings form',
+        'default' => '🎨 Theme & Appearance'
+    ],
+    'admin_theme_reset_desc' => [
+        'desc' => 'Theme section help message',
+        'default' => 'Choose from pre-configured color schemes or adjust individual colors below. Changes are previewed in real-time.'
+    ],
+    'admin_theme_presets' => [
+        'desc' => 'Preset selector label',
+        'default' => 'Select a Color Preset:'
+    ],
+    'admin_theme_primary' => [
+        'desc' => 'Label for primary color option',
+        'default' => 'Primary Color (Brand/Glow)'
+    ],
+    'admin_theme_accent' => [
+        'desc' => 'Label for accent color option',
+        'default' => 'Accent Color (Secondary/Radial)'
+    ],
+    'admin_theme_background' => [
+        'desc' => 'Label for background color option',
+        'default' => 'Main Background Color'
+    ],
+    'admin_theme_card' => [
+        'desc' => 'Label for card background option',
+        'default' => 'Card Background Color'
+    ],
+    'admin_theme_text_primary' => [
+        'desc' => 'Label for primary text color option',
+        'default' => 'Primary Text Color'
+    ],
+    'admin_theme_text_secondary' => [
+        'desc' => 'Label for secondary text color option',
+        'default' => 'Secondary Text Color'
+    ],
+    'admin_save_theme' => [
+        'desc' => 'Button to save theme settings',
+        'default' => 'Save Theme Settings'
+    ],
+    'add_message_checkbox' => [
+        'desc' => 'Label for the checkbox to add a message/note to the owner',
+        'default' => 'Add a message/note'
+    ],
+    'buyer_message_label' => [
+        'desc' => 'Label for the message textarea field',
+        'default' => 'Message (Visible only to owner)'
+    ],
+    'buyer_message_placeholder' => [
+        'desc' => 'Placeholder for the message textarea field',
+        'default' => 'e.g. Hope you like it! Happy holidays!'
     ]
 ];
 
@@ -672,6 +724,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         exit;
     }
     
+    if ($_POST['action'] === 'save_theme') {
+        setSetting('theme_primary', $_POST['theme_primary'] ?? '#6366f1');
+        setSetting('theme_accent', $_POST['theme_accent'] ?? '#a855f7');
+        setSetting('theme_background', $_POST['theme_background'] ?? '#09090b');
+        setSetting('theme_card', $_POST['theme_card'] ?? '#141419');
+        setSetting('theme_text_primary', $_POST['theme_text_primary'] ?? '#f4f4f5');
+        setSetting('theme_text_secondary', $_POST['theme_text_secondary'] ?? '#a1a1aa');
+        
+        $_SESSION['flash_success'] = "Theme settings saved successfully.";
+        header("Location: admin.php");
+        exit;
+    }
+    
     if ($_POST['action'] === 'add_item') {
         $title = trim($_POST['title'] ?? '');
         $url = trim($_POST['url'] ?? '');
@@ -833,6 +898,7 @@ if (file_exists($editTrFile)) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wishlist Admin Dashboard</title>
     <link rel="stylesheet" href="assets/css/style.css">
+    <?php echo getCustomStyles(); ?>
     <style>
         .admin-nav {
             margin-bottom: 2rem;
@@ -1027,7 +1093,7 @@ if (file_exists($editTrFile)) {
                                                 <span class="text-xs text-muted block"><?= h(__('admin_purchased_by', 'Purchased by:')) ?></span>
                                                 <strong class="text-sm block" style="color: var(--success);"><?= h($item['buyer_name']) ?></strong>
                                                 <span class="text-xs text-muted block mt-1"><?= h(__('admin_verification_proof', 'Verification Proof:')) ?></span>
-                                                <code class="text-xs" style="color: var(--text-primary);"><?= h($item['buyer_proof']) ?></code>
+                                                <code class="text-xs" style="color: var(--text-primary); white-space: pre-wrap; display: block;"><?= h($item['buyer_proof']) ?></code>
                                             </div>
                                         <?php endif; ?>
 
@@ -1088,6 +1154,60 @@ if (file_exists($editTrFile)) {
                         </div>
 
                         <button type="submit" class="btn btn-secondary btn-block"><?= h(__('admin_save_config', 'Save Config Settings')) ?></button>
+                    </form>
+                </div>
+
+                <!-- Theme Settings Box -->
+                <div class="add-item-box">
+                    <h3 class="mb-4"><?= h(__('admin_theme_settings', '🎨 Theme & Appearance')) ?></h3>
+                    <p class="text-xs text-muted mb-4"><?= h(__('admin_theme_reset_desc', 'Choose from pre-configured color schemes or adjust individual colors below. Changes are previewed in real-time.')) ?></p>
+                    
+                    <div class="form-group mb-4">
+                        <label><?= h(__('admin_theme_presets', 'Select a Color Preset:')) ?></label>
+                        <div class="flex gap-2" style="flex-wrap: wrap; margin-top: 0.5rem;">
+                            <button type="button" class="btn btn-secondary btn-sm preset-btn" data-preset="default">Cyberpunk</button>
+                            <button type="button" class="btn btn-secondary btn-sm preset-btn" data-preset="emerald">Emerald</button>
+                            <button type="button" class="btn btn-secondary btn-sm preset-btn" data-preset="sunset">Sunset</button>
+                            <button type="button" class="btn btn-secondary btn-sm preset-btn" data-preset="ocean">Ocean</button>
+                            <button type="button" class="btn btn-secondary btn-sm preset-btn" data-preset="sakura">Sakura</button>
+                            <button type="button" class="btn btn-secondary btn-sm preset-btn" data-preset="dracula">Dracula</button>
+                        </div>
+                    </div>
+
+                    <form action="admin.php" method="POST">
+                        <input type="hidden" name="action" value="save_theme">
+
+                        <div class="form-group">
+                            <label for="theme-primary"><?= h(__('admin_theme_primary', 'Primary Color')) ?></label>
+                            <input type="color" id="theme-primary" name="theme_primary" value="<?= h(getSetting('theme_primary', '#6366f1')) ?>" class="theme-color-picker" data-var="--primary" style="height: 45px; padding: 4px; cursor: pointer;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="theme-accent"><?= h(__('admin_theme_accent', 'Accent Color')) ?></label>
+                            <input type="color" id="theme-accent" name="theme_accent" value="<?= h(getSetting('theme_accent', '#a855f7')) ?>" class="theme-color-picker" data-var="--accent" style="height: 45px; padding: 4px; cursor: pointer;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="theme-background"><?= h(__('admin_theme_background', 'Background Color')) ?></label>
+                            <input type="color" id="theme-background" name="theme_background" value="<?= h(getSetting('theme_background', '#09090b')) ?>" class="theme-color-picker" data-var="--bg-main" style="height: 45px; padding: 4px; cursor: pointer;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="theme-card"><?= h(__('admin_theme_card', 'Card Background Color')) ?></label>
+                            <input type="color" id="theme-card" name="theme_card" value="<?= h(getSetting('theme_card', '#141419')) ?>" class="theme-color-picker" data-var="--bg-card" style="height: 45px; padding: 4px; cursor: pointer;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="theme-text-primary"><?= h(__('admin_theme_text_primary', 'Primary Text Color')) ?></label>
+                            <input type="color" id="theme-text-primary" name="theme_text_primary" value="<?= h(getSetting('theme_text_primary', '#f4f4f5')) ?>" class="theme-color-picker" data-var="--text-primary" style="height: 45px; padding: 4px; cursor: pointer;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="theme-text-secondary"><?= h(__('admin_theme_text_secondary', 'Secondary Text Color')) ?></label>
+                            <input type="color" id="theme-text-secondary" name="theme_text_secondary" value="<?= h(getSetting('theme_text_secondary', '#a1a1aa')) ?>" class="theme-color-picker" data-var="--text-secondary" style="height: 45px; padding: 4px; cursor: pointer;">
+                        </div>
+
+                        <button type="submit" class="btn btn-secondary btn-block mt-4"><?= h(__('admin_save_theme', 'Save Theme Settings')) ?></button>
                     </form>
                 </div>
 
@@ -1263,6 +1383,6 @@ if (file_exists($editTrFile)) {
         </div>
     </div>
 
-    <script src="assets/js/admin.js"></script>
+    <script src="assets/js/admin.js?v=<?= filemtime(__DIR__ . '/assets/js/admin.js') ?>"></script>
 </body>
 </html>

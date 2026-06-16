@@ -161,6 +161,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= !$adminExists ? h(__('login_title_create', 'Create Admin Account')) : h(__('login_title_login', 'Admin Login')) ?> - <?= h(__('index_title', 'Shared Wishlist')) ?></title>
     <link rel="stylesheet" href="assets/css/style.css">
+    <?php echo getCustomStyles(); ?>
     <style>
         .login-container {
             display: flex;
