@@ -547,6 +547,18 @@ $translationKeys = [
     'buyer_message_placeholder' => [
         'desc' => 'Placeholder for the message textarea field',
         'default' => 'e.g. Hope you like it! Happy holidays!'
+    ],
+    'message_public_checkbox' => [
+        'desc' => 'Checkbox label to make buyer message public',
+        'default' => 'Make message visible on public wishlist'
+    ],
+    'message_visibility_private' => [
+        'desc' => 'Hint text when message is private (admin only)',
+        'default' => 'This message will only be visible to the wishlist owner (admin).'
+    ],
+    'message_visibility_public' => [
+        'desc' => 'Hint text when message is public',
+        'default' => 'This message will be visible to everyone on the public wishlist.'
     ]
 ];
 

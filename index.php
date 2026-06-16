@@ -119,7 +119,9 @@ try {
             verification_required: <?= json_encode(__('js_verification_required', 'Verification proof (Tracking Link or Order ID) is required.')) ?>,
             verifying: <?= json_encode(__('js_verifying', 'Verifying...')) ?>,
             confirm_purchase: <?= json_encode(__('confirm_purchase', 'Confirm Purchase')) ?>,
-            network_error: <?= json_encode(__('js_network_error', 'Unable to contact the server. Please check your network connection.')) ?>
+            network_error: <?= json_encode(__('js_network_error', 'Unable to contact the server. Please check your network connection.')) ?>,
+            message_visibility_private: <?= json_encode(__('message_visibility_private', 'This message will only be visible to the wishlist owner (admin).')) ?>,
+            message_visibility_public: <?= json_encode(__('message_visibility_public', 'This message will be visible to everyone on the public wishlist.')) ?>
         };
     </script>
 </head>
@@ -225,6 +227,23 @@ try {
                                         <div class="bought-info-text">
                                             <?= sprintf(h(__('purchased_by', '✔ Purchased by %s')), h($item['buyer_name'] ? $item['buyer_name'] : __('anonymous_friend', 'Anonymous Friend'))) ?>
                                         </div>
+                                        
+                                        <?php 
+                                        // Check if there's a public message in buyer_proof
+                                        $proof = $item['buyer_proof'] ?? '';
+                                        if (strpos($proof, '[Public Message]:') !== false) {
+                                            $parts = explode('[Public Message]:', $proof, 2);
+                                            $publicMessage = trim($parts[1] ?? '');
+                                            if (!empty($publicMessage)): 
+                                        ?>
+                                            <div class="buyer-message-public" style="margin-top: 0.75rem; padding: 0.75rem; background: rgba(99, 102, 241, 0.1); border-radius: 8px; border: 1px solid rgba(99, 102, 241, 0.2);">
+                                                <span class="text-xs text-muted block mb-1">💬 Message from buyer:</span>
+                                                <p class="text-sm" style="white-space: pre-wrap; margin: 0;"><?= h($publicMessage) ?></p>
+                                            </div>
+                                        <?php 
+                                            endif;
+                                        }
+                                        ?>
                                     <?php endif; ?>
                                 </div>
                             </div>
@@ -266,13 +285,14 @@ try {
                     </div>
 
                     <div class="checkbox-group">
-                        <input type="checkbox" id="add-message-toggle">
-                        <label for="add-message-toggle"><?= h(__('add_message_checkbox', 'Add a message/note')) ?></label>
+                        <input type="checkbox" id="message-public-toggle">
+                        <label for="message-public-toggle"><?= h(__('message_public_checkbox', 'Make message visible on public wishlist')) ?></label>
                     </div>
 
-                    <div class="form-group" id="message-group" style="display: none; margin-top: -0.5rem; margin-bottom: 1.25rem;">
-                        <label for="buyer-message"><?= h(__('buyer_message_label', 'Message (Visible only to owner)')) ?></label>
+                    <div class="form-group" id="message-group" style="margin-top: -0.5rem; margin-bottom: 1.25rem;">
+                        <label for="buyer-message"><?= h(__('buyer_message_label', 'Message')) ?></label>
                         <textarea id="buyer-message" rows="3" placeholder="<?= h(__('buyer_message_placeholder', 'e.g. Hope you like it! Happy holidays!')) ?>"></textarea>
+                        <span class="text-xs text-muted" id="message-visibility-hint"><?= h(__('buyer_proof_desc', 'This proof will only be visible to the wishlist owner to verify the purchase.')) ?></span>
                     </div>
 
                     <div id="modal-error" class="flash-message flash-danger" style="display: none; margin-top: 1rem;"></div>

@@ -58,6 +58,8 @@ $input = json_decode(file_get_contents('php://input'), true);
 $itemId = $input['item_id'] ?? null;
 $buyerName = trim($input['buyer_name'] ?? '');
 $buyerProof = trim($input['buyer_proof'] ?? '');
+$buyerMessage = trim($input['buyer_message'] ?? '');
+$messagePublic = isset($input['message_public']) ? (bool)$input['message_public'] : false;
 
 if (empty($itemId)) {
     echo json_encode(['success' => false, 'message' => __('err_item_id_required', 'Item ID is required.')]);
@@ -88,6 +90,12 @@ try {
     // Set default name if empty
     if (empty($buyerName)) {
         $buyerName = __('anonymous_friend', 'Anonymous Friend');
+    }
+    
+    // Append message to proof if provided
+    if (!empty($buyerMessage)) {
+        $visibilityLabel = $messagePublic ? 'Public Message' : 'Private Message (Admin Only)';
+        $buyerProof = $buyerProof . "\n\n[" . $visibilityLabel . "]: " . $buyerMessage;
     }
     
     // Update item as bought

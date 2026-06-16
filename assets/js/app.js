@@ -54,6 +54,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const buyItemIdInput = document.getElementById('buy-item-id');
     const buyerNameInput = document.getElementById('buyer-name');
     const buyerProofInput = document.getElementById('buyer-proof');
+    const messagePublicToggle = document.getElementById('message-public-toggle');
+    const messageGroup = document.getElementById('message-group');
+    const buyerMessageInput = document.getElementById('buyer-message');
+    const messageVisibilityHint = document.getElementById('message-visibility-hint');
+
+    if (messagePublicToggle && messageVisibilityHint) {
+        const t = window.translations || {};
+        messagePublicToggle.addEventListener('change', () => {
+            messageVisibilityHint.textContent = messagePublicToggle.checked 
+                ? (t.message_visibility_public || 'This message will be visible to everyone on the public wishlist.')
+                : (t.message_visibility_private || 'This message will only be visible to the wishlist owner (admin).');
+        });
+    }
 
     document.querySelectorAll('.btn-mark-bought').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -65,6 +78,9 @@ document.addEventListener('DOMContentLoaded', () => {
             modalItemTitle.textContent = title;
             buyerNameInput.value = '';
             buyerProofInput.value = '';
+            if (messagePublicToggle) messagePublicToggle.checked = false;
+            if (buyerMessageInput) buyerMessageInput.value = '';
+            if (messageVisibilityHint) messageVisibilityHint.textContent = 'This message will only be visible to the wishlist owner (admin).';
             modalError.style.display = 'none';
             modalError.textContent = '';
             
@@ -113,6 +129,9 @@ document.addEventListener('DOMContentLoaded', () => {
             submitBtn.disabled = true;
             submitBtn.textContent = t.verifying || 'Verifying...';
 
+            const buyerMessage = buyerMessageInput ? buyerMessageInput.value.trim() : '';
+            const messagePublic = messagePublicToggle ? messagePublicToggle.checked : false;
+
             fetch('api/mark-bought.php', {
                 method: 'POST',
                 headers: {
@@ -121,7 +140,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({
                     item_id: itemId,
                     buyer_name: buyerName,
-                    buyer_proof: buyerProof
+                    buyer_proof: buyerProof,
+                    buyer_message: buyerMessage,
+                    message_public: messagePublic
                 })
             })
             .then(res => res.json())

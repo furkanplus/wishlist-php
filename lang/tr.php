@@ -59,4 +59,7 @@ return array (
   'add_message_checkbox' => 'Bir mesaj/not ekle',
   'buyer_message_label' => 'Mesaj (Yalnızca liste sahibine gösterilir)',
   'buyer_message_placeholder' => 'Örn. Umarım beğenirsin! İyi tatiller!',
+  'message_public_checkbox' => 'Mesajı herkese açık wishlist\'te göster',
+  'message_visibility_private' => 'Bu mesaj sadece liste sahibine (yöneticiye) gösterilecek.',
+  'message_visibility_public' => 'Bu mesaj herkese açık wishlist\'te herkes tarafından görülebilir.',
 );
