@@ -56,13 +56,15 @@ function resolveUrl($relative, $base) {
     return $scheme . $host . $dir . $relative;
 }
 
-// cURL setup to fetch page content
+// cURL setup to fetch page content securely
 try {
+    if (!isSafeUrl($url, true)) {
+        echo json_encode(['success' => false, 'message' => 'The provided URL is unsafe or invalid.']);
+        exit;
+    }
+
     $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-    curl_setopt($ch, CURLOPT_MAXREDIRS, 5);
     curl_setopt($ch, CURLOPT_TIMEOUT, 10);
     // Masquerade as a popular modern desktop browser
     curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36');
@@ -71,12 +73,40 @@ try {
         'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         'Accept-Language: en-US,en;q=0.5'
     ]);
-    // Allow scraping pages with SSL issues safely
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+    // SSL verification enabled by default for security
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
     
-    $html = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $currentUrl = $url;
+    $redirects = 0;
+    $maxRedirects = 5;
+    $html = false;
+    
+    while ($redirects <= $maxRedirects) {
+        if (!isSafeUrl($currentUrl, true)) {
+            echo json_encode(['success' => false, 'message' => 'URL redirected to an unsafe or invalid destination.']);
+            curl_close($ch);
+            exit;
+        }
+        
+        curl_setopt($ch, CURLOPT_URL, $currentUrl);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false); // Manually handle redirects to prevent redirect-based SSRF
+        
+        $html = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        
+        if ($httpCode >= 300 && $httpCode < 400) {
+            $redirectUrl = curl_getinfo($ch, CURLINFO_REDIRECT_URL);
+            if (empty($redirectUrl)) {
+                break;
+            }
+            $currentUrl = resolveUrl($redirectUrl, $currentUrl);
+            $redirects++;
+        } else {
+            break;
+        }
+    }
+    
     curl_close($ch);
     
     if ($html === false || $httpCode >= 400) {

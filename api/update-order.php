@@ -21,6 +21,15 @@ if (!is_array($ids) || empty($ids)) {
 
 try {
     $pdo->beginTransaction();
+    
+    // Acquire exclusive locks (FOR UPDATE) on the rows being updated to prevent race conditions
+    if (!empty($ids)) {
+        $sanitizedIds = array_map('intval', $ids);
+        $placeholders = implode(',', array_fill(0, count($sanitizedIds), '?'));
+        $lockStmt = $pdo->prepare("SELECT `id` FROM `wishlist_items` WHERE `id` IN ($placeholders) FOR UPDATE");
+        $lockStmt->execute($sanitizedIds);
+    }
+    
     $stmt = $pdo->prepare("UPDATE `wishlist_items` SET `sort_order` = ? WHERE `id` = ?");
     
     foreach ($ids as $index => $id) {

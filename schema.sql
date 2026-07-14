@@ -37,3 +37,17 @@ INSERT IGNORE INTO `settings` (`key`, `value`) VALUES
 ('shipping_address_expires_at', ''),
 ('general_notes', ''),
 ('currency', 'USD');
+
+CREATE TABLE IF NOT EXISTS `rate_limits` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `key` VARCHAR(100) NOT NULL,
+    `created_at` INT NOT NULL,
+    INDEX `idx_key_created` (`key`, `created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `rate_limits` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `key` VARCHAR(100) NOT NULL,
+    `created_at` INT NOT NULL,
+    INDEX `idx_key_created` (`key`, `created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

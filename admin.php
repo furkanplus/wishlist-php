@@ -25,6 +25,9 @@ if (!file_exists(__DIR__ . '/config.php')) {
 }
 require_once __DIR__ . '/config.php';
 
+// Set security headers
+setSecurityHeaders();
+
 if (!function_exists('getAvailableLanguages')) {
     function getAvailableLanguages()
     {
@@ -96,6 +99,9 @@ $currentLang = $_SESSION['lang'] ?? $_COOKIE['lang'] ?? 'en';
 
 // Enforce admin login
 requireAdmin();
+
+// Generate CSRF token for forms
+generateCsrfToken();
 
 $translationKeys = [
     'index_title' => [
@@ -839,7 +845,12 @@ unset($_SESSION['flash_success'], $_SESSION['flash_error']);
 
 // Handle Post Actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
-    // CSRF check could go here, for simplicity we trust admin session
+    // CSRF verification for all state-changing POST actions
+    if (!verifyCsrfToken($_POST['csrf'] ?? '')) {
+        $_SESSION['flash_error'] = 'Invalid CSRF token. Please refresh the page and try again.';
+        header("Location: admin.php");
+        exit;
+    }
 
     if ($_POST['action'] === 'save_translations') {
         $langCode = strtolower(trim($_POST['lang_code'] ?? ''));
@@ -867,7 +878,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $_SESSION['flash_error'] = "Failed to write translation file. Please check folder permissions.";
             }
         } catch (Exception $e) {
-            $_SESSION['flash_error'] = "Failed to save translations: " . $e->getMessage();
+            $_SESSION['flash_error'] = "Failed to save translations. Please check folder permissions.";
         }
         header("Location: admin.php?edit_lang=" . urlencode($langCode) . "#tab-translations");
         exit;
@@ -898,9 +909,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                         $_SESSION['flash_error'] = "Failed to create language file. Check permissions.";
                     }
                 }
-            } catch (Exception $e) {
-                $_SESSION['flash_error'] = "Error creating language: " . $e->getMessage();
-            }
+} catch (Exception $e) {
+            $_SESSION['flash_error'] = "Error creating language. Please check folder permissions.";
+        }
         }
         header("Location: admin.php#tab-translations");
         exit;
@@ -941,12 +952,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     }
 
     if ($_POST['action'] === 'save_theme') {
-        setSetting('theme_primary', $_POST['theme_primary'] ?? '#6366f1');
-        setSetting('theme_accent', $_POST['theme_accent'] ?? '#a855f7');
-        setSetting('theme_background', $_POST['theme_background'] ?? '#09090b');
-        setSetting('theme_card', $_POST['theme_card'] ?? '#141419');
-        setSetting('theme_text_primary', $_POST['theme_text_primary'] ?? '#f4f4f5');
-        setSetting('theme_text_secondary', $_POST['theme_text_secondary'] ?? '#a1a1aa');
+        $primary = $_POST['theme_primary'] ?? '#6366f1';
+        $accent = $_POST['theme_accent'] ?? '#a855f7';
+        $background = $_POST['theme_background'] ?? '#09090b';
+        $card = $_POST['theme_card'] ?? '#141419';
+        $text_primary = $_POST['theme_text_primary'] ?? '#f4f4f5';
+        $text_secondary = $_POST['theme_text_secondary'] ?? '#a1a1aa';
+
+        if (validateCssColor($primary) === false ||
+            validateCssColor($accent) === false ||
+            validateCssColor($background) === false ||
+            validateCssColor($card) === false ||
+            validateCssColor($text_primary) === false ||
+            validateCssColor($text_secondary) === false) {
+            $_SESSION['flash_error'] = "Invalid CSS color value configured for theme.";
+            header("Location: admin.php");
+            exit;
+        }
+
+        setSetting('theme_primary', $primary);
+        setSetting('theme_accent', $accent);
+        setSetting('theme_background', $background);
+        setSetting('theme_card', $card);
+        setSetting('theme_text_primary', $text_primary);
+        setSetting('theme_text_secondary', $text_secondary);
 
         $_SESSION['flash_success'] = "Theme settings saved successfully.";
         header("Location: admin.php");
@@ -1021,6 +1050,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $estimated_price = $_POST['estimated_price'] ?? '';
         $estimated_price = $estimated_price !== '' ? (float) $estimated_price : null;
 
+        if ($estimated_price !== null && ($estimated_price < 0 || $estimated_price > 999999.99)) {
+            $_SESSION['flash_error'] = "Estimated price must be between 0 and 999,999.99.";
+            header("Location: admin.php");
+            exit;
+        }
+
         if (empty($title) || empty($url)) {
             $_SESSION['flash_error'] = "Product title and link URL are required.";
         } else {
@@ -1050,6 +1085,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $notes = trim($_POST['notes'] ?? '');
         $estimated_price = $_POST['estimated_price'] ?? '';
         $estimated_price = $estimated_price !== '' ? (float) $estimated_price : null;
+
+        if ($estimated_price !== null && ($estimated_price < 0 || $estimated_price > 999999.99)) {
+            $_SESSION['flash_error'] = "Estimated price must be between 0 and 999,999.99.";
+            header("Location: admin.php");
+            exit;
+        }
         $buyer_message = trim($_POST['buyer_message'] ?? '');
         $message_public = isset($_POST['message_public']) ? 1 : 0;
 
@@ -1082,8 +1123,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $_SESSION['flash_error'] = "All password fields are required.";
         } elseif ($newPassword !== $confirmPassword) {
             $_SESSION['flash_error'] = "New passwords do not match.";
-        } elseif (strlen($newPassword) < 6) {
-            $_SESSION['flash_error'] = "New password must be at least 6 characters long.";
+        } elseif (strlen($newPassword) < 12) {
+            $_SESSION['flash_error'] = "New password must be at least 12 characters long.";
         } else {
             $username = $_SESSION['admin_user'];
             try {
@@ -1100,7 +1141,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $_SESSION['flash_error'] = "Incorrect current password.";
                 }
             } catch (PDOException $e) {
-                $_SESSION['flash_error'] = "Database error: " . $e->getMessage();
+                $_SESSION['flash_error'] = "Failed to change password. Please try again.";
             }
         }
         header("Location: admin.php");
@@ -1108,7 +1149,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     }
 
     if ($_POST['action'] === 'save_webhook') {
-        setSetting('webhook_url', trim($_POST['webhook_url'] ?? ''));
+        $webhookUrl = trim($_POST['webhook_url'] ?? '');
+        
+        if (!empty($webhookUrl) && !isSafeUrl($webhookUrl, false)) {
+            $_SESSION['flash_error'] = "Invalid or unsafe Webhook URL. It must use HTTPS and must not resolve to private, local, or loopback IP addresses.";
+            header("Location: admin.php");
+            exit;
+        }
+
+        setSetting('webhook_url', $webhookUrl);
         setSetting('webhook_query_params', trim($_POST['webhook_query_params'] ?? ''));
         setSetting('webhook_secret', trim($_POST['webhook_secret'] ?? ''));
         setSetting('webhook_method', $_POST['webhook_method'] ?? 'POST');
@@ -1122,57 +1171,85 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         header("Location: admin.php");
         exit;
     }
-}
 
-// Handle GET Actions (Delete, Toggle Bought)
-if (isset($_GET['delete'])) {
-    $id = (int) $_GET['delete'];
-    $stmt = $pdo->prepare("DELETE FROM `wishlist_items` WHERE `id` = ?");
-    $stmt->execute([$id]);
-    $_SESSION['flash_success'] = "Wishlist item removed.";
-    header("Location: admin.php");
-    exit;
-}
-
-if (isset($_GET['toggle_bought'])) {
-    $id = (int) $_GET['toggle_bought'];
-    $stmt = $pdo->prepare("SELECT `is_bought` FROM `wishlist_items` WHERE `id` = ?");
-    $stmt->execute([$id]);
-    $item = $stmt->fetch();
-
-    if ($item) {
-        $newBought = (int) $item['is_bought'] === 1 ? 0 : 1;
-        if ($newBought === 0) {
-            // Reset buyer details
-            $updateStmt = $pdo->prepare("UPDATE `wishlist_items` SET `is_bought` = 0, `buyer_name` = NULL, `buyer_proof` = NULL, `bought_at` = NULL WHERE `id` = ?");
-            $updateStmt->execute([$id]);
-        } else {
-            // Set bought by admin
-            $updateStmt = $pdo->prepare("UPDATE `wishlist_items` SET `is_bought` = 1, `buyer_name` = 'Admin', `buyer_proof` = 'Manually marked by admin', `bought_at` = NOW() WHERE `id` = ?");
-            $updateStmt->execute([$id]);
+    if ($_POST['action'] === 'delete_item') {
+        $id = (int) ($_POST['id'] ?? 0);
+        if ($id > 0) {
+            $stmt = $pdo->prepare("DELETE FROM `wishlist_items` WHERE `id` = ?");
+            $stmt->execute([$id]);
+            $_SESSION['flash_success'] = "Wishlist item removed.";
         }
-        $_SESSION['flash_success'] = "Item purchase status updated.";
+        header("Location: admin.php");
+        exit;
     }
-    header("Location: admin.php");
-    exit;
-}
 
-if (isset($_GET['archive'])) {
-    $id = (int) $_GET['archive'];
-    $stmt = $pdo->prepare("UPDATE `wishlist_items` SET `is_archived` = 1 WHERE `id` = ?");
-    $stmt->execute([$id]);
-    $_SESSION['flash_success'] = "Item archived.";
-    header("Location: admin.php");
-    exit;
-}
+    if ($_POST['action'] === 'toggle_bought') {
+        $id = (int) ($_POST['id'] ?? 0);
+        if ($id > 0) {
+            $stmt = $pdo->prepare("SELECT `is_bought`, `title`, `url`, `image_url`, `estimated_price`, `notes` FROM `wishlist_items` WHERE `id` = ?");
+            $stmt->execute([$id]);
+            $item = $stmt->fetch();
 
-if (isset($_GET['unarchive'])) {
-    $id = (int) $_GET['unarchive'];
-    $stmt = $pdo->prepare("UPDATE `wishlist_items` SET `is_archived` = 0 WHERE `id` = ?");
-    $stmt->execute([$id]);
-    $_SESSION['flash_success'] = "Item unarchived.";
-    header("Location: admin.php");
-    exit;
+            if ($item) {
+                $newBought = (int) $item['is_bought'] === 1 ? 0 : 1;
+                if ($newBought === 0) {
+                    // Reset buyer details
+                    $updateStmt = $pdo->prepare("UPDATE `wishlist_items` SET `is_bought` = 0, `buyer_name` = NULL, `buyer_proof` = NULL, `buyer_message` = NULL, `message_public` = 0, `bought_at` = NULL WHERE `id` = ?");
+                    $updateStmt->execute([$id]);
+                } else {
+                    // Set bought by admin
+                    $updateStmt = $pdo->prepare("UPDATE `wishlist_items` SET `is_bought` = 1, `buyer_name` = 'Admin', `buyer_proof` = 'Manually marked by admin', `buyer_message` = NULL, `message_public` = 0, `bought_at` = NOW() WHERE `id` = ?");
+                    $updateStmt->execute([$id]);
+
+                    // Trigger webhook notification for admin bought action
+                    if (function_exists('sendWebhook')) {
+                        $itemData = [
+                            'item_id' => $id,
+                            'item_title' => $item['title'],
+                            'item_url' => $item['url'],
+                            'item_image' => $item['image_url'] ?? '',
+                            'estimated_price' => $item['estimated_price'] ?? '',
+                            'notes' => $item['notes'] ?? '',
+                        ];
+                        $buyerData = [
+                            'buyer_name' => 'Admin',
+                            'buyer_proof' => 'Manually marked by admin',
+                            'buyer_message' => '',
+                            'message_public' => 'false',
+                            'bought_at' => date('Y-m-d H:i:s'),
+                            'source' => 'admin',
+                        ];
+                        sendWebhook($itemData, $buyerData);
+                    }
+                }
+                $_SESSION['flash_success'] = "Item purchase status updated.";
+            }
+        }
+        header("Location: admin.php");
+        exit;
+    }
+
+    if ($_POST['action'] === 'archive') {
+        $id = (int) ($_POST['id'] ?? 0);
+        if ($id > 0) {
+            $stmt = $pdo->prepare("UPDATE `wishlist_items` SET `is_archived` = 1 WHERE `id` = ?");
+            $stmt->execute([$id]);
+            $_SESSION['flash_success'] = "Item archived.";
+        }
+        header("Location: admin.php");
+        exit;
+    }
+
+    if ($_POST['action'] === 'unarchive') {
+        $id = (int) ($_POST['id'] ?? 0);
+        if ($id > 0) {
+            $stmt = $pdo->prepare("UPDATE `wishlist_items` SET `is_archived` = 0 WHERE `id` = ?");
+            $stmt->execute([$id]);
+            $_SESSION['flash_success'] = "Item unarchived.";
+        }
+        header("Location: admin.php");
+        exit;
+    }
 }
 
 // Fetch settings
@@ -1345,9 +1422,10 @@ if (file_exists($editTrFile)) {
                             </div>
                         </div>
 
-                        <!-- Add form (reveals details once scraped or manually entered) -->
+<!-- Add form (reveals details once scraped or manually entered) -->
                         <form action="admin.php" method="POST" id="form-add-item">
                             <input type="hidden" name="action" value="add_item">
+                            <input type="hidden" name="csrf" value="<?= h($_SESSION['csrf_token']) ?>">
 
                             <div class="form-group">
                                 <label for="add-title"><?= h(__('admin_product_title', 'Product Title')) ?></label>
@@ -1486,19 +1564,29 @@ if (file_exists($editTrFile)) {
                                                 <?= h(__('admin_edit', '✏️ Edit')) ?>
                                             </button>
                                             <div class="flex gap-2">
-                                                <a href="admin.php?toggle_bought=<?= $item['id'] ?>"
-                                                    class="btn btn-secondary btn-sm" style="flex-grow: 1;">
-                                                    <?= $item['is_bought'] ? h(__('admin_unmark', '↩️ Unmark')) : h(__('admin_mark_bought_btn', '✅ Mark Bought')) ?>
-                                                </a>
-                                                <a href="admin.php?<?= $item['is_archived'] ? 'unarchive' : 'archive' ?>=<?= $item['id'] ?>"
-                                                    class="btn btn-warning btn-sm"
-                                                    onclick="return confirm(<?= h(json_encode($item['is_archived'] ? __('admin_unarchive_confirm', 'Unarchive this item? It will become visible on the public wishlist again.') : __('admin_archive_confirm', 'Archive this item? It will be hidden from the public wishlist but remain visible to you.'))) ?>);"
-                                                    title="<?= $item['is_archived'] ? h(__('admin_unarchive', '📤 Unarchive')) : h(__('admin_archive', '📦 Archive')) ?>">
-                                                    <?= $item['is_archived'] ? '📤' : '📦' ?>
-                                                </a>
-                                                <a href="admin.php?delete=<?= $item['id'] ?>" class="btn btn-danger btn-sm"
-                                                    onclick="return confirm(<?= h(json_encode(__('admin_delete_confirm', 'Remove this item from your wishlist?'))) ?>);"
-                                                    title="Delete">🗑️</a>
+                                                <form method="POST" action="admin.php" style="display: inline;" onsubmit="return confirm(<?= h(json_encode($item['is_bought'] ? __('admin_unmark_confirm', 'Unmark this item as bought?') : __('admin_mark_bought_confirm', 'Mark this item as bought by admin?'))) ?>);">
+                                                    <input type="hidden" name="action" value="toggle_bought">
+                                                    <input type="hidden" name="id" value="<?= $item['id'] ?>">
+                                                    <input type="hidden" name="csrf" value="<?= h($_SESSION['csrf_token']) ?>">
+                                                    <button type="submit" class="btn btn-secondary btn-sm" style="flex-grow: 1;">
+                                                        <?= $item['is_bought'] ? h(__('admin_unmark', '↩️ Unmark')) : h(__('admin_mark_bought_btn', '✅ Mark Bought')) ?>
+                                                    </button>
+                                                </form>
+                                                <form method="POST" action="admin.php" style="display: inline;" onsubmit="return confirm(<?= h(json_encode($item['is_archived'] ? __('admin_unarchive_confirm', 'Unarchive this item? It will become visible on the public wishlist again.') : __('admin_archive_confirm', 'Archive this item? It will be hidden from the public wishlist but remain visible to you.'))) ?>);">
+                                                    <input type="hidden" name="action" value="<?= $item['is_archived'] ? 'unarchive' : 'archive' ?>">
+                                                    <input type="hidden" name="id" value="<?= $item['id'] ?>">
+                                                    <input type="hidden" name="csrf" value="<?= h($_SESSION['csrf_token']) ?>">
+                                                    <button type="submit" class="btn btn-warning btn-sm"
+                                                        title="<?= $item['is_archived'] ? h(__('admin_unarchive', '📤 Unarchive')) : h(__('admin_archive', '📦 Archive')) ?>">
+                                                        <?= $item['is_archived'] ? '📤' : '📦' ?>
+                                                    </button>
+                                                </form>
+                                                <form method="POST" action="admin.php" style="display: inline;" onsubmit="return confirm(<?= h(json_encode(__('admin_delete_confirm', 'Remove this item from your wishlist?'))) ?>);">
+                                                    <input type="hidden" name="action" value="delete_item">
+                                                    <input type="hidden" name="id" value="<?= $item['id'] ?>">
+                                                    <input type="hidden" name="csrf" value="<?= h($_SESSION['csrf_token']) ?>">
+                                                    <button type="submit" class="btn btn-danger btn-sm" title="Delete">🗑️</button>
+                                                </form>
                                             </div>
                                         </div>
                                     </div>
@@ -1518,6 +1606,7 @@ if (file_exists($editTrFile)) {
                     <h3 class="mb-4"><?= h(__('admin_general_settings', '⚙️ General Settings')) ?></h3>
                     <form action="admin.php" method="POST">
                         <input type="hidden" name="action" value="save_settings">
+                        <input type="hidden" name="csrf" value="<?= h($_SESSION['csrf_token']) ?>">
 
                         <div class="form-group">
                             <label
@@ -1594,6 +1683,7 @@ if (file_exists($editTrFile)) {
 
                     <form action="admin.php" method="POST">
                         <input type="hidden" name="action" value="save_theme">
+                        <input type="hidden" name="csrf" value="<?= h($_SESSION['csrf_token']) ?>">
 
                         <div class="form-group">
                             <label for="theme-primary"><?= h(__('admin_theme_primary', 'Primary Color')) ?></label>
@@ -1651,6 +1741,7 @@ if (file_exists($editTrFile)) {
                     <h3 class="mb-4"><?= h(__('admin_change_password', '🔒 Change Password')) ?></h3>
                     <form action="admin.php" method="POST">
                         <input type="hidden" name="action" value="change_password">
+                        <input type="hidden" name="csrf" value="<?= h($_SESSION['csrf_token']) ?>">
 
                         <div class="form-group">
                             <label
@@ -1662,7 +1753,7 @@ if (file_exists($editTrFile)) {
                         <div class="form-group">
                             <label for="new-password"><?= h(__('admin_new_password', 'New Password')) ?></label>
                             <input type="password" id="new-password" name="new_password"
-                                placeholder="Minimum 6 characters" required>
+                                placeholder="Minimum 12 characters" required>
                         </div>
 
                         <div class="form-group">
@@ -1714,6 +1805,7 @@ if (file_exists($editTrFile)) {
                                     style="margin: 0;">
                                     <input type="hidden" name="action" value="delete_language">
                                     <input type="hidden" name="lang_code" value="<?= h($editLang) ?>">
+                                    <input type="hidden" name="csrf" value="<?= h($_SESSION['csrf_token']) ?>">
                                     <button type="submit"
                                         class="btn btn-danger btn-sm"><?= h(__('admin_btn_delete_language', '🗑️ Delete Language')) ?></button>
                                 </form>
@@ -1725,6 +1817,7 @@ if (file_exists($editTrFile)) {
                     <form action="admin.php" method="POST"
                         style="margin: 0; flex: 1; min-width: 280px; display: flex; flex-direction: column;">
                         <input type="hidden" name="action" value="create_language">
+                        <input type="hidden" name="csrf" value="<?= h($_SESSION['csrf_token']) ?>">
                         <label for="new-lang-code" class="text-xs text-muted block mb-2"
                             style="font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;"><?= h(__('admin_add_new_language', '➕ Add New Language')) ?></label>
                         <div style="display: flex; gap: 0.5rem;">
@@ -1766,6 +1859,7 @@ if (file_exists($editTrFile)) {
                 <form action="admin.php" method="POST">
                     <input type="hidden" name="action" value="save_translations">
                     <input type="hidden" name="lang_code" value="<?= h($editLang) ?>">
+                    <input type="hidden" name="csrf" value="<?= h($_SESSION['csrf_token']) ?>">
 
                     <div class="table-container">
                         <table class="translation-table">
@@ -1820,6 +1914,7 @@ if (file_exists($editTrFile)) {
 
             <form action="admin.php" method="POST">
                 <input type="hidden" name="action" value="save_webhook">
+                <input type="hidden" name="csrf" value="<?= h($_SESSION['csrf_token']) ?>">
 
                 <div class="form-group">
                     <label for="webhook-url"><?= h(__('admin_webhook_url_label', 'Webhook URL')) ?></label>
@@ -1938,6 +2033,7 @@ if (file_exists($editTrFile)) {
             <form action="admin.php" method="POST">
                 <input type="hidden" name="action" value="edit_item">
                 <input type="hidden" name="id" id="edit-id">
+                <input type="hidden" name="csrf" value="<?= h($_SESSION['csrf_token']) ?>">
 
                 <div class="form-group">
                     <label for="edit-title"><?= h(__('admin_product_title', 'Product Title')) ?></label>

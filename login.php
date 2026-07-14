@@ -25,6 +25,9 @@ if (!file_exists(__DIR__ . '/config.php')) {
 }
 require_once __DIR__ . '/config.php';
 
+// Set security headers
+setSecurityHeaders();
+
 if (!function_exists('getAvailableLanguages')) {
     function getAvailableLanguages() {
         $langs = ['en'];
@@ -110,49 +113,78 @@ try {
 
 // Handle Form Submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = trim($_POST['username'] ?? '');
-    $password = $_POST['password'] ?? '';
+    // Rate limiting: max 5 attempts per 15 minutes per IP
+    $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+    $rateLimitKey = "login:$ip";
+    $now = time();
+    $window = 15 * 60; // 15 minutes
+    $maxAttempts = 5;
     
-    if (empty($username) || empty($password)) {
-        $error = __('err_login_required', 'Both username and password are required.');
+    // Clean old entries
+    $pdo->exec("DELETE FROM `rate_limits` WHERE `created_at` < " . ($now - $window));
+    
+    // Count recent attempts
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM `rate_limits` WHERE `key` = ? AND `created_at` >= ?");
+    $stmt->execute([$rateLimitKey, $now - $window]);
+    $attempts = (int)$stmt->fetchColumn();
+    
+    if ($attempts >= $maxAttempts) {
+        $error = 'Too many login attempts. Please try again in 15 minutes.';
     } else {
-        if (!$adminExists) {
-            // First time setup - register admin
-            try {
-                $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
-                $stmt = $pdo->prepare("INSERT INTO `users` (`username`, `password_hash`) VALUES (?, ?)");
-                $stmt->execute([$username, $hashedPassword]);
-                
-                $_SESSION['admin_logged_in'] = true;
-                $_SESSION['admin_user'] = $username;
-                
-                header("Location: admin.php");
-                exit;
-            } catch (PDOException $e) {
-                $error = __('err_registration_failed', 'Registration failed: ') . $e->getMessage();
-            }
+        // Record this attempt
+        $stmt = $pdo->prepare("INSERT INTO `rate_limits` (`key`, `created_at`) VALUES (?, ?)");
+        $stmt->execute([$rateLimitKey, $now]);
+        
+        $username = trim($_POST['username'] ?? '');
+        $password = $_POST['password'] ?? '';
+        
+        if (empty($username) || empty($password)) {
+            $error = __('err_login_required', 'Both username and password are required.');
+        } elseif (strlen($password) < 12) {
+            $error = 'Password must be at least 12 characters long.';
         } else {
-            // Regular Login
-            try {
-                $stmt = $pdo->prepare("SELECT * FROM `users` WHERE `username` = ?");
-                $stmt->execute([$username]);
-                $user = $stmt->fetch();
-                
-                if ($user && password_verify($password, $user['password_hash'])) {
+            if (!$adminExists) {
+                // First time setup - register admin
+                try {
+                    $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
+                    $stmt = $pdo->prepare("INSERT INTO `users` (`username`, `password_hash`) VALUES (?, ?)");
+                    $stmt->execute([$username, $hashedPassword]);
+                    
+                    // Regenerate session ID to prevent session fixation
+                    session_regenerate_id(true);
                     $_SESSION['admin_logged_in'] = true;
-                    $_SESSION['admin_user'] = $user['username'];
+                    $_SESSION['admin_user'] = $username;
                     
                     header("Location: admin.php");
                     exit;
-                } else {
-                    $error = __('err_login_invalid', 'Invalid username or password.');
+                } catch (PDOException $e) {
+                    $error = __('err_registration_failed', 'Registration failed. Please try again.');
                 }
-            } catch (PDOException $e) {
-                $error = __('err_login_failed', 'Login failed: ') . $e->getMessage();
+            } else {
+                // Regular Login
+                try {
+                    $stmt = $pdo->prepare("SELECT * FROM `users` WHERE `username` = ?");
+                    $stmt->execute([$username]);
+                    $user = $stmt->fetch();
+                    
+                    if ($user && password_verify($password, $user['password_hash'])) {
+                        // Regenerate session ID to prevent session fixation
+                        session_regenerate_id(true);
+                        $_SESSION['admin_logged_in'] = true;
+                        $_SESSION['admin_user'] = $user['username'];
+                        
+                        header("Location: admin.php");
+                        exit;
+                    } else {
+                        $error = __('err_login_invalid', 'Invalid username or password.');
+                    }
+                } catch (PDOException $e) {
+                    $error = __('err_login_failed', 'Login failed. Please try again.');
+                }
             }
         }
     }
-}
+} // closes if POST
 ?>
 <!DOCTYPE html>
 <html lang="<?= h($currentLang) ?>">

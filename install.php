@@ -99,6 +99,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Please fill out all required fields.';
     } elseif ($admin_pass !== $admin_pass_confirm) {
         $error = 'Admin passwords do not match.';
+    } elseif (!preg_match('/^[a-zA-Z0-9_$]+$/', $db_name)) {
+        $error = 'Database name may only contain letters, numbers, underscore, and $.';
     } else {
         try {
             // 1. Try to connect directly to the database first
@@ -174,7 +176,7 @@ try {
         PDO::ATTR_EMULATE_PREPARES => false
     ]);
 } catch (PDOException \$e) {
-    die('Database Connection Error: ' . \$e->getMessage() . '<br><br>Please check credentials in config.php.');
+    die('Database Connection Error. Please check credentials in config.php.');
 }
 
 // Helpers
@@ -261,9 +263,9 @@ ensureWishlistColumns(\$pdo);
             }
             
         } catch (PDOException $e) {
-            $error = 'Database Setup Failed: ' . $e->getMessage();
+            $error = 'Database Setup Failed. Please check your database credentials and try again.';
         } catch (Exception $e) {
-            $error = 'Installation Error: ' . $e->getMessage();
+            $error = 'Installation Error. Please check your configuration and try again.';
         }
     }
 }
@@ -391,7 +393,7 @@ ensureWishlistColumns(\$pdo);
 
                         <div class="form-group">
                             <label for="admin_pass">Admin Password</label>
-                            <input type="password" id="admin_pass" name="admin_pass" placeholder="Minimum 6 characters" required>
+                            <input type="password" id="admin_pass" name="admin_pass" placeholder="Minimum 12 characters" required>
                         </div>
 
                         <div class="form-group">

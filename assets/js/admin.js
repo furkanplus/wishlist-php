@@ -536,32 +536,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 if (result.success) {
                     webhookTestResult.className = 'mt-3 flash-message flash-success';
-                    webhookTestResult.innerHTML = '✅ ' + (result.message || 'Test webhook sent successfully! Check your webhook endpoint.');
+                    webhookTestResult.textContent = '✅ ' + (result.message || 'Test webhook sent successfully! Check your webhook endpoint.');
                 } else {
                     webhookTestResult.className = 'mt-3 flash-message flash-danger';
                     let errorMsg = '❌ ' + (result.message || 'Test webhook failed');
                     // Include n8n 422 response body if available
                     if (result.response) {
-                        errorMsg += '<br><small>Server response:</small><br><pre style="white-space: pre-wrap; font-size: 0.75rem; background: rgba(0,0,0,0.2); padding: 0.5rem; border-radius: 4px; margin-top: 0.5rem; overflow-x: auto;">' + 
-                                    result.response.replace(/</g, '<').replace(/>/g, '>') + '</pre>';
+                        errorMsg += '\n\nServer response:\n' + result.response;
                     } else if (result.http_code) {
                         errorMsg += ' (HTTP ' + result.http_code + ')';
                     }
                     // Include debug info (request URL, headers, body) if available
                     if (result.debug) {
-                        errorMsg += '<br><small>Debug - Request sent:</small><br><pre style="white-space: pre-wrap; font-size: 0.7rem; background: rgba(0,0,0,0.15); padding: 0.5rem; border-radius: 4px; margin-top: 0.5rem; overflow-x: auto;">';
+                        errorMsg += '\n\nDebug - Request sent:\n';
                         errorMsg += 'URL: ' + (result.debug.url || 'N/A') + '\n';
                         errorMsg += 'Method: ' + (result.debug.method || 'N/A') + '\n';
                         errorMsg += 'Content-Type: ' + (result.debug.content_type || 'N/A') + '\n';
                         errorMsg += 'Body Template Used: ' + (result.debug.body_template_used ? 'Yes' : 'No') + '\n';
                         errorMsg += 'Body:\n' + JSON.stringify(result.debug.body, null, 2);
-                        errorMsg += '</pre>';
                     }
-                    webhookTestResult.innerHTML = errorMsg;
+                    webhookTestResult.textContent = errorMsg;
                 }
             } catch (err) {
                 webhookTestResult.className = 'mt-3 flash-message flash-danger';
-                webhookTestResult.innerHTML = '❌ Error sending test webhook: ' + err.message;
+                webhookTestResult.textContent = '❌ Error sending test webhook: ' + err.message;
             }
 
             webhookTestResult.style.display = 'block';

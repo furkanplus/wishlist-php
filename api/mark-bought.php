@@ -92,7 +92,7 @@ try {
         $buyerName = __('anonymous_friend', 'Anonymous Friend');
     }
 
-    // Update item as bought
+    // Update item as bought atomically
     $updateStmt = $pdo->prepare("
         UPDATE `wishlist_items` 
         SET `is_bought` = 1, 
@@ -101,38 +101,40 @@ try {
             `buyer_message` = ?,
             `message_public` = ?,
             `bought_at` = NOW() 
-        WHERE `id` = ?
+        WHERE `id` = ? AND `is_bought` = 0
     ");
-    $updateResult = $updateStmt->execute([$buyerName, $buyerProof, $buyerMessage, $messagePublic ? 1 : 0, $itemId]);
+    $updateStmt->execute([$buyerName, $buyerProof, $buyerMessage, $messagePublic ? 1 : 0, $itemId]);
     
-    if ($updateResult) {
-        // Send webhook notification
-        $boughtAt = date('Y-m-d H:i:s');
-        $itemData = [
-            'item_id' => $item['id'],
-            'item_title' => $item['title'],
-            'item_url' => $item['url'],
-            'item_image' => $item['image_url'] ?? '',
-            'estimated_price' => $item['estimated_price'] ?? '',
-            'notes' => $item['notes'] ?? '',
-        ];
-        $buyerData = [
-            'buyer_name' => $buyerName,
-            'buyer_proof' => $buyerProof,
-            'buyer_message' => $buyerMessage,
-            'message_public' => $messagePublic ? 'true' : 'false',
-            'bought_at' => $boughtAt,
-        ];
-        
-        // Send webhook asynchronously (fire and forget)
-        if (function_exists('sendWebhook')) {
-            sendWebhook($itemData, $buyerData);
-        }
-        
-        echo json_encode(['success' => true, 'message' => __('success_marked_bought', 'Thank you! Item successfully marked as bought.')]);
-    } else {
-        echo json_encode(['success' => false, 'message' => __('err_updating_failed', 'An error occurred while updating the item.')]);
+    if ($updateStmt->rowCount() === 0) {
+        // Concurrent request already marked it as bought
+        echo json_encode(['success' => false, 'message' => __('err_already_bought', 'This item has already been marked as bought.')]);
+        exit;
     }
+    
+    // Send webhook notification
+    $boughtAt = date('Y-m-d H:i:s');
+    $itemData = [
+        'item_id' => $item['id'],
+        'item_title' => $item['title'],
+        'item_url' => $item['url'],
+        'item_image' => $item['image_url'] ?? '',
+        'estimated_price' => $item['estimated_price'] ?? '',
+        'notes' => $item['notes'] ?? '',
+    ];
+    $buyerData = [
+        'buyer_name' => $buyerName,
+        'buyer_proof' => $buyerProof,
+        'buyer_message' => $buyerMessage,
+        'message_public' => $messagePublic ? 'true' : 'false',
+        'bought_at' => $boughtAt,
+        'source' => 'buyer',
+    ];
+    // Send webhook asynchronously (fire and forget)
+    if (function_exists('sendWebhook')) {
+        sendWebhook($itemData, $buyerData);
+    }
+    
+    echo json_encode(['success' => true, 'message' => __('success_marked_bought', 'Thank you! Item successfully marked as bought.')]);
 } catch (PDOException $e) {
-    echo json_encode(['success' => false, 'message' => __('err_updating_failed', 'An error occurred while updating the item.') . ' ' . $e->getMessage()]);
+    echo json_encode(['success' => false, 'message' => __('err_updating_failed', 'An error occurred while updating the item.')]);
 }

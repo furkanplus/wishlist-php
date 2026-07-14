@@ -25,6 +25,9 @@ if (!file_exists(__DIR__ . '/config.php')) {
 }
 require_once __DIR__ . '/config.php';
 
+// Set security headers
+setSecurityHeaders();
+
 if (!function_exists('getAvailableLanguages')) {
     function getAvailableLanguages() {
         $langs = ['en'];
@@ -126,7 +129,7 @@ try {
     ");
     $items = $stmt->fetchAll();
 } catch (PDOException $e) {
-    die("Database query error: " . $e->getMessage());
+    die("Unable to load wishlist. Please try again later.");
 }
 ?>
 <!DOCTYPE html>
