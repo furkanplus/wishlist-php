@@ -93,6 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const editImageInput = document.getElementById('edit-image');
     const editImagePreview = document.getElementById('edit-image-preview');
     const editImagePreviewContainer = document.getElementById('edit-image-preview-container');
+    const editPriceInput = document.getElementById('edit-price');
     setupLivePreview(editImageInput, editImagePreview, editImagePreviewContainer);
 
 
@@ -103,6 +104,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const editTitleInput = document.getElementById('edit-title');
     const editUrlInput = document.getElementById('edit-url');
     const editNotesInput = document.getElementById('edit-notes');
+    const editBuyerMessageInput = document.getElementById('edit-buyer-message');
+    const editMessagePublicInput = document.getElementById('edit-message-public');
 
     document.querySelectorAll('.btn-edit').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -111,12 +114,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const url = btn.dataset.url;
             const image = btn.dataset.image;
             const notes = btn.dataset.notes;
+            const price = btn.dataset.price;
+            const buyerMessage = btn.dataset.buyerMessage;
+            const messagePublic = btn.dataset.messagePublic;
 
             editIdInput.value = id;
             editTitleInput.value = title;
             editUrlInput.value = url;
             editImageInput.value = image;
             editNotesInput.value = notes;
+            if (editPriceInput) editPriceInput.value = price;
+            if (editBuyerMessageInput) editBuyerMessageInput.value = buyerMessage;
+            if (editMessagePublicInput) editMessagePublicInput.checked = messagePublic === '1';
 
             if (image) {
                 editImagePreview.src = image;
@@ -198,32 +207,37 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Arrow Buttons Sorting (Mobile / Fallback) ---
-    document.querySelectorAll('.btn-move-up').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            const item = btn.closest('.sortable-item');
-            const prev = item.previousElementSibling;
-            if (prev && prev.classList.contains('sortable-item')) {
-                list.insertBefore(item, prev);
-                saveNewOrder();
-            }
+    const sortableList = document.getElementById('sortable-list');
+    if (sortableList) {
+        document.querySelectorAll('.btn-move-up').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const item = btn.closest('.sortable-item');
+                const prev = item.previousElementSibling;
+                if (prev && prev.classList.contains('sortable-item')) {
+                    sortableList.insertBefore(item, prev);
+                    saveNewOrder();
+                }
+            });
         });
-    });
 
-    document.querySelectorAll('.btn-move-down').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            const item = btn.closest('.sortable-item');
-            const next = item.nextElementSibling;
-            if (next && next.classList.contains('sortable-item')) {
-                list.insertBefore(next, item);
-                saveNewOrder();
-            }
+        document.querySelectorAll('.btn-move-down').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const item = btn.closest('.sortable-item');
+                const next = item.nextElementSibling;
+                if (next && next.classList.contains('sortable-item')) {
+                    sortableList.insertBefore(next, item);
+                    saveNewOrder();
+                }
+            });
         });
-    });
+    }
 
     // Send API update request
     function saveNewOrder() {
+        const list = document.getElementById('sortable-list');
+        if (!list) return;
         const items = [...list.querySelectorAll('.sortable-item')];
         const ids = items.map(item => item.dataset.id);
         
@@ -245,42 +259,44 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- Tab Switching ---
-    const tabBtns = document.querySelectorAll('.tab-btn');
-    const tabContents = document.querySelectorAll('.tab-content');
+    // --- Tab Switching (Event Delegation) ---
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('.tab-btn');
+        if (!btn) return;
 
-    if (tabBtns.length > 0) {
-        tabBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const targetTab = btn.dataset.tab;
+        const targetTab = btn.dataset.tab;
+        if (!targetTab) return;
 
-                tabBtns.forEach(b => b.classList.remove('active'));
-                tabContents.forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
 
-                btn.classList.add('active');
-                const contentEl = document.getElementById('tab-' + targetTab);
-                if (contentEl) {
-                    contentEl.classList.add('active');
-                }
+        btn.classList.add('active');
+        const contentEl = document.getElementById('tab-' + targetTab);
+        if (contentEl) {
+            contentEl.classList.add('active');
+        }
 
-                localStorage.setItem('active_admin_tab', targetTab);
-            });
-        });
+        localStorage.setItem('active_admin_tab', targetTab);
+    });
 
-        // Restore active tab (prefer location hash, then localStorage)
+    // Restore active tab on load (prefer location hash, then localStorage)
+    (() => {
         let activeTab = 'items';
-        if (window.location.hash && document.getElementById('tab-' + window.location.hash.substring(1).replace('tab-', ''))) {
-            activeTab = window.location.hash.substring(1).replace('tab-', '');
+        if (window.location.hash) {
+            const hashTab = window.location.hash.substring(1).replace('tab-', '');
+            if (document.getElementById('tab-' + hashTab)) {
+                activeTab = hashTab;
+            }
         } else {
             activeTab = localStorage.getItem('active_admin_tab') || 'items';
         }
         const activeBtn = document.querySelector(`.tab-btn[data-tab="${activeTab}"]`);
         if (activeBtn) {
             activeBtn.click();
-        } else if (tabBtns[0]) {
-            tabBtns[0].click();
+        } else {
+            document.querySelectorAll('.tab-btn')[0]?.click();
         }
-    }
+    })();
 
     // --- Translation Filter ---
     const trSearch = document.getElementById('translation-search');
@@ -476,4 +492,82 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    // --- Test Webhook Button ---
+    const testWebhookBtn = document.getElementById('btn-test-webhook');
+    const webhookTestResult = document.getElementById('webhook-test-result');
+
+    if (testWebhookBtn && webhookTestResult) {
+        testWebhookBtn.addEventListener('click', async () => {
+            testWebhookBtn.disabled = true;
+            testWebhookBtn.textContent = 'Sending...';
+            webhookTestResult.style.display = 'none';
+            webhookTestResult.className = 'mt-3';
+
+            try {
+                const response = await fetch('admin.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: new URLSearchParams({
+                        action: 'test_webhook'
+                    })
+                });
+
+                const contentType = response.headers.get('content-type');
+                let result;
+                
+                if (contentType && contentType.includes('application/json')) {
+                    result = await response.json();
+                } else {
+                    const text = await response.text();
+                    // Check for flash messages in HTML response
+                    if (text.includes('flash-success') || text.includes('Test webhook sent successfully')) {
+                        result = { success: true, message: 'Test webhook sent successfully! Check your webhook endpoint.' };
+                    } else if (text.includes('flash-danger') || text.includes('Test webhook failed')) {
+                        result = { success: false, message: 'Test webhook failed. Check the flash message above for details.' };
+                    } else {
+                        result = { success: false, message: 'Unexpected response from server' };
+                    }
+                }
+                
+                if (result.success) {
+                    webhookTestResult.className = 'mt-3 flash-message flash-success';
+                    webhookTestResult.innerHTML = '✅ ' + (result.message || 'Test webhook sent successfully! Check your webhook endpoint.');
+                } else {
+                    webhookTestResult.className = 'mt-3 flash-message flash-danger';
+                    let errorMsg = '❌ ' + (result.message || 'Test webhook failed');
+                    // Include n8n 422 response body if available
+                    if (result.response) {
+                        errorMsg += '<br><small>Server response:</small><br><pre style="white-space: pre-wrap; font-size: 0.75rem; background: rgba(0,0,0,0.2); padding: 0.5rem; border-radius: 4px; margin-top: 0.5rem; overflow-x: auto;">' + 
+                                    result.response.replace(/</g, '<').replace(/>/g, '>') + '</pre>';
+                    } else if (result.http_code) {
+                        errorMsg += ' (HTTP ' + result.http_code + ')';
+                    }
+                    // Include debug info (request URL, headers, body) if available
+                    if (result.debug) {
+                        errorMsg += '<br><small>Debug - Request sent:</small><br><pre style="white-space: pre-wrap; font-size: 0.7rem; background: rgba(0,0,0,0.15); padding: 0.5rem; border-radius: 4px; margin-top: 0.5rem; overflow-x: auto;">';
+                        errorMsg += 'URL: ' + (result.debug.url || 'N/A') + '\n';
+                        errorMsg += 'Method: ' + (result.debug.method || 'N/A') + '\n';
+                        errorMsg += 'Content-Type: ' + (result.debug.content_type || 'N/A') + '\n';
+                        errorMsg += 'Body Template Used: ' + (result.debug.body_template_used ? 'Yes' : 'No') + '\n';
+                        errorMsg += 'Body:\n' + JSON.stringify(result.debug.body, null, 2);
+                        errorMsg += '</pre>';
+                    }
+                    webhookTestResult.innerHTML = errorMsg;
+                }
+            } catch (err) {
+                webhookTestResult.className = 'mt-3 flash-message flash-danger';
+                webhookTestResult.innerHTML = '❌ Error sending test webhook: ' + err.message;
+            }
+
+            webhookTestResult.style.display = 'block';
+            testWebhookBtn.disabled = false;
+            testWebhookBtn.textContent = '🧪 Send Test Webhook';
+        });
+    }
+
 });

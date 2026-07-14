@@ -331,6 +331,18 @@ h1 {
     height: 2.5rem;
 }
 
+.item-price {
+    display: inline-block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--success);
+    background: rgba(16, 185, 129, 0.08);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: var(--radius-sm);
+    padding: 0.3rem 0.7rem;
+    margin-bottom: 0.75rem;
+}
+
 .item-actions {
     margin-top: auto;
     display: flex;
@@ -395,6 +407,7 @@ input[type="text"],
 input[type="password"],
 input[type="url"],
 input[type="datetime-local"],
+input[type="number"],
 textarea,
 select {
     width: 100%;
@@ -406,6 +419,7 @@ select {
     font-family: var(--font-sans);
     font-size: 0.95rem;
     transition: var(--transition);
+    overflow-wrap: break-word;
 }
 
 input:focus, textarea:focus, select:focus {
@@ -474,6 +488,17 @@ input:focus, textarea:focus, select:focus {
 .btn-danger:hover {
     background: var(--danger);
     color: white;
+}
+
+.btn-warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.btn-warning:hover {
+    background: var(--warning);
+    color: #000;
 }
 
 .btn-sm {
@@ -804,6 +829,21 @@ tr:hover td {
 
 .tab-content.active {
     display: block;
+    width: 100%;
+    max-width: 640px;
+    margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+    .tab-content.active {
+        max-width: 960px;
+    }
+}
+
+@media (min-width: 1200px) {
+    .tab-content.active {
+        max-width: 1200px;
+    }
 }
 
 /* Translation Management Panel */
@@ -898,6 +938,38 @@ tr:hover td {
 .lang-dropdown option {
     background-color: var(--bg-main);
     color: var(--text-primary);
+}
+
+/* Sort Controls */
+.sort-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+}
+
+.sort-btn {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.sort-btn:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.sort-btn.active {
+    color: var(--text-primary);
+    background: var(--primary);
+    border-color: var(--primary);
 }
 
 /* Translation Warning Styles */

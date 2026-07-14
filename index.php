@@ -97,10 +97,33 @@ $generalNotes = getSetting('general_notes', '');
 $shippingAddress = getSetting('shipping_address', '');
 $shippingVisible = isShippingAddressVisible();
 $shippingExpiresAt = getSetting('shipping_address_expires_at', '');
+$currency = getSetting('currency', 'USD');
+$currencySymbol = getCurrencySymbol($currency);
 
-// Fetch items: Unbought items at the top (sorted by sort_order), bought items at the bottom
+// Sort handling
+$sort = $_GET['sort'] ?? 'default';
+$orderClause = "`is_bought` ASC, `sort_order` ASC";
+if ($sort === 'price_asc') {
+    $orderClause = "`is_bought` ASC, IFNULL(`estimated_price`, 999999) ASC";
+} elseif ($sort === 'price_desc') {
+    $orderClause = "`is_bought` ASC, IFNULL(`estimated_price`, 0) DESC";
+}
+
+// Fetch items
 try {
-    $stmt = $pdo->query("SELECT * FROM `wishlist_items` ORDER BY `is_bought` ASC, `sort_order` ASC");
+    $stmt = $pdo->query("
+        SELECT 
+            `id`, `title`, `url`, `image_url`, `notes`, `estimated_price`, 
+            `is_bought`, `buyer_name`, `buyer_proof`, `bought_at`, `is_archived`, `sort_order`, `created_at`,
+            CASE 
+                WHEN `is_bought` = 1 AND `buyer_message` IS NOT NULL AND `message_public` = 0 THEN NULL
+                ELSE `buyer_message`
+            END AS `buyer_message`,
+            `message_public`
+        FROM `wishlist_items` 
+        WHERE `is_archived` = 0 
+        ORDER BY {$orderClause}
+    ");
     $items = $stmt->fetchAll();
 } catch (PDOException $e) {
     die("Database query error: " . $e->getMessage());
@@ -112,7 +135,7 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= h(__('index_title', 'Shared Wishlist')) ?></title>
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/style.css?v=2">
     <?php echo getCustomStyles(); ?>
     <script>
         window.translations = {
@@ -175,7 +198,15 @@ try {
 
         <!-- Wishlist Items Grid -->
         <main class="wishlist-container">
-            <h3 class="mb-4"><?= h(__('items_list', '🎁 Items List')) ?></h3>
+            <div class="flex justify-between align-center mb-4" style="flex-wrap: wrap; gap: 0.5rem;">
+                <h3><?= h(__('items_list', '🎁 Items List')) ?></h3>
+                <div class="sort-controls flex gap-2 align-center">
+                    <span class="text-xs text-muted"><?= h(__('sort_label', 'Sort:')) ?></span>
+                    <a href="?sort=default" class="sort-btn <?= $sort === 'default' ? 'active' : '' ?>"><?= h(__('sort_default', 'Default')) ?></a>
+                    <a href="?sort=price_asc" class="sort-btn <?= $sort === 'price_asc' ? 'active' : '' ?>"><?= h(__('sort_price_asc', 'Price: Low to High')) ?></a>
+                    <a href="?sort=price_desc" class="sort-btn <?= $sort === 'price_desc' ? 'active' : '' ?>"><?= h(__('sort_price_desc', 'Price: High to Low')) ?></a>
+                </div>
+            </div>
             <div class="wishlist-grid">
                 <?php if (empty($items)): ?>
                     <div class="info-card text-center" style="grid-column: 1/-1;">
@@ -216,6 +247,10 @@ try {
                                     <p class="item-notes text-muted">No specific details.</p>
                                 <?php endif; ?>
 
+                                <?php if ($item['estimated_price'] !== null): ?>
+                                    <div class="item-price">~ <?= h($currencySymbol) ?><?= number_format((float)$item['estimated_price'], 2) ?></div>
+                                <?php endif; ?>
+
                                 <div class="item-actions">
                                     <a href="<?= h($item['url']) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm"><?= h(__('view_product', '🌐 View Product')) ?></a>
                                     
@@ -228,22 +263,13 @@ try {
                                             <?= sprintf(h(__('purchased_by', '✔ Purchased by %s')), h($item['buyer_name'] ? $item['buyer_name'] : __('anonymous_friend', 'Anonymous Friend'))) ?>
                                         </div>
                                         
-                                        <?php 
-                                        // Check if there's a public message in buyer_proof
-                                        $proof = $item['buyer_proof'] ?? '';
-                                        if (strpos($proof, '[Public Message]:') !== false) {
-                                            $parts = explode('[Public Message]:', $proof, 2);
-                                            $publicMessage = trim($parts[1] ?? '');
-                                            if (!empty($publicMessage)): 
-                                        ?>
-                                            <div class="buyer-message-public" style="margin-top: 0.75rem; padding: 0.75rem; background: rgba(99, 102, 241, 0.1); border-radius: 8px; border: 1px solid rgba(99, 102, 241, 0.2);">
-                                                <span class="text-xs text-muted block mb-1">💬 Message from buyer:</span>
-                                                <p class="text-sm" style="white-space: pre-wrap; margin: 0;"><?= h($publicMessage) ?></p>
+                                        <?php if (!empty($item['buyer_message'])): ?>
+                                            <?php $isPublic = !empty($item['message_public']); ?>
+                                            <div class="buyer-message-<?= $isPublic ? 'public' : 'private' ?>" style="margin-top: 0.75rem; padding: 0.75rem; border-radius: 8px; border: 1px solid <?= $isPublic ? 'rgba(99, 102, 241, 0.2)' : 'rgba(249, 115, 22, 0.2)' ?>; background: <?= $isPublic ? 'rgba(99, 102, 241, 0.1)' : 'rgba(249, 115, 22, 0.1)' ?>;">
+                                                <span class="text-xs text-muted block mb-1"><?= $isPublic ? '💬 ' . h(__('public_message_label', 'Public message from buyer:')) : '🔒 ' . h(__('private_message_label', 'Private message (owner only):')) ?></span>
+                                                <p class="text-sm" style="white-space: pre-wrap; margin: 0;"><?= h($item['buyer_message']) ?></p>
                                             </div>
-                                        <?php 
-                                            endif;
-                                        }
-                                        ?>
+                                        <?php endif; ?>
                                     <?php endif; ?>
                                 </div>
                             </div>
@@ -284,16 +310,16 @@ try {
                         <span class="text-xs text-muted"><?= h(__('buyer_proof_desc', 'This proof will only be visible to the wishlist owner to verify the purchase.')) ?></span>
                     </div>
 
+                    <div class="form-group">
+                        <label for="buyer-message"><?= h(__('buyer_message_label', 'Message (Optional)')) ?></label>
+                        <textarea id="buyer-message" rows="3" placeholder="<?= h(__('buyer_message_placeholder', 'e.g. Hope you like it! Happy holidays!')) ?>"></textarea>
+                    </div>
+
                     <div class="checkbox-group">
                         <input type="checkbox" id="message-public-toggle">
                         <label for="message-public-toggle"><?= h(__('message_public_checkbox', 'Make message visible on public wishlist')) ?></label>
                     </div>
-
-                    <div class="form-group" id="message-group" style="margin-top: -0.5rem; margin-bottom: 1.25rem;">
-                        <label for="buyer-message"><?= h(__('buyer_message_label', 'Message')) ?></label>
-                        <textarea id="buyer-message" rows="3" placeholder="<?= h(__('buyer_message_placeholder', 'e.g. Hope you like it! Happy holidays!')) ?>"></textarea>
-                        <span class="text-xs text-muted" id="message-visibility-hint"><?= h(__('buyer_proof_desc', 'This proof will only be visible to the wishlist owner to verify the purchase.')) ?></span>
-                    </div>
+                    <span class="text-xs text-muted" id="message-visibility-hint"><?= h(__('message_visibility_private', 'This message will only be visible to the wishlist owner (admin).')) ?></span>
 
                     <div id="modal-error" class="flash-message flash-danger" style="display: none; margin-top: 1rem;"></div>
 
@@ -311,5 +337,10 @@ try {
     </div>
 
     <script src="assets/js/app.js"></script>
+    <footer class="page-footer" style="margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); text-align: center;">
+        <p class="text-xs text-muted" style="margin: 0;">
+            Built with <a href="https://github.com/furkanplus/wishlist-php" target="_blank" rel="noopener noreferrer" style="color: var(--primary); text-decoration: none; font-weight: 500;">wishlist-php</a> &mdash; <a href="https://github.com/furkanplus/wishlist-php" target="_blank" rel="noopener noreferrer" style="color: var(--text-secondary); text-decoration: none;">View on GitHub</a>
+        </p>
+    </footer>
 </body>
 </html>

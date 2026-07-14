@@ -2,7 +2,7 @@
 .env
 
 # Local only - not for FTP (but OK for GitHub)
-# config.php
+config.php
 
 # OS metadata
 .DS_Store
@@ -18,3 +18,4 @@ Thumbs.db
 *.swp
 *.agent
 
+AGENTS.md

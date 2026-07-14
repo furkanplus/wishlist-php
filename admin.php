@@ -26,7 +26,8 @@ if (!file_exists(__DIR__ . '/config.php')) {
 require_once __DIR__ . '/config.php';
 
 if (!function_exists('getAvailableLanguages')) {
-    function getAvailableLanguages() {
+    function getAvailableLanguages()
+    {
         $langs = ['en'];
         $langDir = __DIR__ . '/lang';
         if (is_dir($langDir)) {
@@ -45,14 +46,15 @@ if (!function_exists('getAvailableLanguages')) {
 }
 
 if (!function_exists('__')) {
-    function __($key, $default = '') {
+    function __($key, $default = '')
+    {
         static $translations = null;
-        
+
         $lang = $_SESSION['lang'] ?? $_COOKIE['lang'] ?? 'en';
         if ($lang === 'en') {
             return $default;
         }
-        
+
         if ($translations === null) {
             $translations = [];
             $file = __DIR__ . '/lang/' . $lang . '.php';
@@ -81,7 +83,7 @@ if (!function_exists('__')) {
                 }
             }
         }
-        
+
         if (isset($translations[$key]) && trim($translations[$key]) !== '') {
             return $translations[$key];
         }
@@ -559,12 +561,213 @@ $translationKeys = [
     'message_visibility_public' => [
         'desc' => 'Hint text when message is public',
         'default' => 'This message will be visible to everyone on the public wishlist.'
+    ],
+    'public_message_label' => [
+        'desc' => 'Label for public buyer message display',
+        'default' => 'Public message from buyer:'
+    ],
+    'private_message_label' => [
+        'desc' => 'Label for private buyer message display',
+        'default' => 'Private message (owner only):'
+    ],
+    'admin_buyer_private_message' => [
+        'desc' => 'Admin label for buyer private message',
+        'default' => "Buyer's Private Message (Admin Only):"
+    ],
+    'admin_buyer_public_message' => [
+        'desc' => 'Admin label for buyer public message',
+        'default' => "Buyer's Public Message:"
+    ],
+    'estimated_price_label' => [
+        'desc' => 'Label for estimated price input',
+        'default' => 'Estimated Price'
+    ],
+    'estimated_price_placeholder' => [
+        'desc' => 'Placeholder for estimated price input',
+        'default' => 'e.g. 49.99'
+    ],
+    'sort_label' => [
+        'desc' => 'Label for sort dropdown',
+        'default' => 'Sort:'
+    ],
+    'sort_default' => [
+        'desc' => 'Default sort option',
+        'default' => 'Default'
+    ],
+    'sort_price_asc' => [
+        'desc' => 'Sort by price ascending',
+        'default' => 'Price: Low to High'
+    ],
+    'sort_price_desc' => [
+        'desc' => 'Sort by price descending',
+        'default' => 'Price: High to Low'
+    ],
+    'currency_label' => [
+        'desc' => 'Label for currency selector in settings',
+        'default' => 'Price Currency'
+    ],
+    'currency_help' => [
+        'desc' => 'Help text for currency selector',
+        'default' => 'Select the currency used for displaying estimated prices on the wishlist.'
+    ],
+    'admin_archive' => [
+        'desc' => 'Button to archive item (hide from public)',
+        'default' => '📦 Archive'
+    ],
+    'admin_unarchive' => [
+        'desc' => 'Button to unarchive item (show on public)',
+        'default' => '📤 Unarchive'
+    ],
+    'admin_archived_badge' => [
+        'desc' => 'Badge for archived items',
+        'default' => 'ARCHIVED'
+    ],
+    'admin_archive_confirm' => [
+        'desc' => 'Confirmation for archiving',
+        'default' => 'Archive this item? It will be hidden from the public wishlist but remain visible to you.'
+    ],
+    'admin_unarchive_confirm' => [
+        'desc' => 'Confirmation for unarchiving',
+        'default' => 'Unarchive this item? It will become visible on the public wishlist again.'
+    ],
+    'admin_no_notes' => [
+        'desc' => 'Placeholder text when item has no notes',
+        'default' => 'No specific notes.'
+    ],
+    'admin_buyer_message_label' => [
+        'desc' => 'Label for buyer message field in edit modal',
+        'default' => "Buyer's Message"
+    ],
+    'admin_buyer_message_placeholder' => [
+        'desc' => 'Placeholder for buyer message field',
+        'default' => 'Message from buyer...'
+    ],
+    'admin_message_public_label' => [
+        'desc' => 'Label for message visibility checkbox in edit modal',
+        'default' => 'Make message visible on public wishlist'
+    ],
+    'admin_message_public_help' => [
+        'desc' => 'Help text for message visibility checkbox',
+        'default' => 'If checked, the buyer\'s message will be visible to everyone on the public wishlist. If unchecked, only visible to admin.'
+    ],
+    'err_login_required' => [
+        'desc' => 'Login error: both fields required',
+        'default' => 'Both username and password are required.'
+    ],
+    'err_registration_failed' => [
+        'desc' => 'Login error: registration failed',
+        'default' => 'Registration failed: '
+    ],
+    'err_login_invalid' => [
+        'desc' => 'Login error: invalid credentials',
+        'default' => 'Invalid username or password.'
+    ],
+    'err_login_failed' => [
+        'desc' => 'Login error: general failure',
+        'default' => 'Login failed: '
+    ],
+    'admin_tab_webhooks' => [
+        'desc' => 'Tab button label: Webhooks',
+        'default' => '🔗 Webhooks'
+    ],
+    'admin_webhook_settings' => [
+        'desc' => 'Card header for webhook settings',
+        'default' => '🔗 Webhook Configuration'
+    ],
+    'admin_webhook_desc' => [
+        'desc' => 'Description for webhook settings',
+        'default' => 'Configure webhooks to receive notifications when items are marked as bought. The webhook URL and secrets are never exposed to the public.'
+    ],
+    'admin_webhook_url' => [
+        'desc' => 'Label for webhook URL input',
+        'default' => 'Webhook URL'
+    ],
+    'admin_webhook_url_placeholder' => [
+        'desc' => 'Placeholder for webhook URL',
+        'default' => 'https://your-webhook-endpoint.com/webhook'
+    ],
+    'admin_webhook_method' => [
+        'desc' => 'Label for HTTP method select',
+        'default' => 'HTTP Method'
+    ],
+    'admin_webhook_headers' => [
+        'desc' => 'Label for headers textarea',
+        'default' => 'Custom Headers (JSON)'
+    ],
+    'admin_webhook_headers_placeholder' => [
+        'desc' => 'Placeholder for headers',
+        'default' => '{"Authorization": "Bearer YOUR_TOKEN", "Content-Type": "application/json"}'
+    ],
+    'admin_webhook_body' => [
+        'desc' => 'Label for body template',
+        'default' => 'Body Template (JSON with placeholders)'
+    ],
+    'admin_webhook_body_placeholder' => [
+        'desc' => 'Placeholder for body template',
+        'default' => '{\n  "item_id": "{{item_id}}",\n  "item_title": "{{item_title}}",\n  "item_url": "{{item_url}}",\n  "buyer_name": "{{buyer_name}}",\n  "buyer_proof": "{{buyer_proof}}",\n  "buyer_message": "{{buyer_message}}",\n  "message_public": {{message_public}},\n  "bought_at": "{{bought_at}}"\n}'
+    ],
+    'admin_webhook_body_help' => [
+        'desc' => 'Help text for body template',
+        'default' => 'Available placeholders: {{item_id}}, {{item_title}}, {{item_url}}, {{item_image}}, {{buyer_name}}, {{buyer_proof}}, {{buyer_message}}, {{message_public}}, {{bought_at}}, {{estimated_price}}, {{notes}}'
+    ],
+    'admin_webhook_events' => [
+        'desc' => 'Label for trigger events',
+        'default' => 'Trigger Events'
+    ],
+    'admin_webhook_event_bought' => [
+        'desc' => 'Checkbox label for item bought event',
+        'default' => 'Item marked as bought'
+    ],
+    'admin_webhook_test' => [
+        'desc' => 'Button to test webhook',
+        'default' => '🧪 Test Webhook'
+    ],
+    'admin_webhook_test_success' => [
+        'desc' => 'Success message for test webhook',
+        'default' => 'Test webhook sent successfully!'
+    ],
+    'admin_webhook_test_failed' => [
+        'desc' => 'Error message for test webhook',
+        'default' => 'Test webhook failed: '
+    ],
+    'admin_save_webhook' => [
+        'desc' => 'Button to save webhook settings',
+        'default' => 'Save Webhook Settings'
+    ],
+    'admin_webhook_url_help' => [
+        'desc' => 'Help text for webhook URL',
+        'default' => 'This URL is never exposed to the public. Only the server will send requests to this endpoint.'
+    ],
+    'admin_webhook_query_params_label' => [
+        'desc' => 'Label for query parameters input',
+        'default' => 'Query Parameters (Optional)'
+    ],
+    'admin_webhook_query_params_placeholder' => [
+        'desc' => 'Placeholder for query parameters',
+        'default' => 'key1=value1&key2=value2'
+    ],
+    'admin_webhook_query_params_help' => [
+        'desc' => 'Help text for query parameters',
+        'default' => 'Additional query parameters to append to the webhook URL (e.g., token=abc123&source=wishlist). Will be appended with ? or & as needed.'
+    ],
+    'admin_webhook_body_label' => [
+        'desc' => 'Label for body template',
+        'default' => 'Body Template (JSON with placeholders)'
+    ],
+    'admin_webhook_body_placeholder' => [
+        'desc' => 'Placeholder for body template',
+        'default' => '{\n  "item_id": "{{item_id}}",\n  "item_title": "{{item_title}}",\n  "item_url": "{{item_url}}",\n  "buyer_name": "{{buyer_name}}",\n  "buyer_proof": "{{buyer_proof}}",\n  "buyer_message": "{{buyer_message}}",\n  "message_public": {{message_public}},\n  "bought_at": "{{bought_at}}"\n}'
+    ],
+    'admin_webhook_body_help' => [
+        'desc' => 'Help text for body template',
+        'default' => 'Available placeholders: {{item_id}}, {{item_title}}, {{item_url}}, {{item_image}}, {{buyer_name}}, {{buyer_proof}}, {{buyer_message}}, {{message_public}}, {{bought_at}}, {{estimated_price}}, {{notes}}'
     ]
 ];
 
-function runSecurityChecks($pdo) {
+function runSecurityChecks($pdo)
+{
     $warnings = [];
-    
+
     // 1. Check install.php
     $installFile = __DIR__ . '/install.php';
     if (file_exists($installFile)) {
@@ -577,7 +780,7 @@ function runSecurityChecks($pdo) {
             }
         }
     }
-    
+
     // 1b. Check schema.sql
     $schemaFile = __DIR__ . '/schema.sql';
     if (file_exists($schemaFile)) {
@@ -585,7 +788,7 @@ function runSecurityChecks($pdo) {
             $warnings[] = "<strong>⚠️ Security Notice:</strong> The database schema file <code>schema.sql</code> is still present and could not be automatically deleted. Please delete it manually from your server files.";
         }
     }
-    
+
     // 2. Check config.php permissions
     $configFile = __DIR__ . '/config.php';
     if (file_exists($configFile) && DIRECTORY_SEPARATOR === '/') {
@@ -598,21 +801,21 @@ function runSecurityChecks($pdo) {
             }
         }
     }
-    
+
     // 3. Check HTTPS
     $isHttps = false;
     if (isset($_SERVER['HTTPS']) && (strtolower($_SERVER['HTTPS']) === 'on' || $_SERVER['HTTPS'] === '1')) {
         $isHttps = true;
     } elseif (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https') {
         $isHttps = true;
-    } elseif (isset($_SERVER['SERVER_PORT']) && (int)$_SERVER['SERVER_PORT'] === 443) {
+    } elseif (isset($_SERVER['SERVER_PORT']) && (int) $_SERVER['SERVER_PORT'] === 443) {
         $isHttps = true;
     }
-    
+
     if (!$isHttps) {
         $warnings[] = "<strong>⚠️ Insecure Connection:</strong> You are accessing the admin panel over an unencrypted connection (HTTP). Please enable and enforce HTTPS (SSL) on your domain to prevent credential theft.";
     }
-    
+
     // 4. Check for default username/password
     try {
         $stmt = $pdo->prepare("SELECT `password_hash` FROM `users` WHERE `username` = ?");
@@ -624,7 +827,7 @@ function runSecurityChecks($pdo) {
     } catch (Exception $e) {
         // Ignore DB query errors during warning scanner
     }
-    
+
     return $warnings;
 }
 
@@ -637,7 +840,7 @@ unset($_SESSION['flash_success'], $_SESSION['flash_error']);
 // Handle Post Actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     // CSRF check could go here, for simplicity we trust admin session
-    
+
     if ($_POST['action'] === 'save_translations') {
         $langCode = strtolower(trim($_POST['lang_code'] ?? ''));
         if (!preg_match('/^[a-z]{2,3}(_[a-z]{2,4})?$/i', $langCode)) {
@@ -669,7 +872,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         header("Location: admin.php?edit_lang=" . urlencode($langCode) . "#tab-translations");
         exit;
     }
-    
+
     if ($_POST['action'] === 'create_language') {
         $newLangCode = strtolower(trim($_POST['new_lang_code'] ?? ''));
         if (!preg_match('/^[a-z]{2,3}(_[a-z]{2,4})?$/i', $newLangCode)) {
@@ -702,7 +905,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         header("Location: admin.php#tab-translations");
         exit;
     }
-    
+
     if ($_POST['action'] === 'delete_language') {
         $delLang = strtolower(trim($_POST['lang_code'] ?? ''));
         if ($delLang === 'en' || !preg_match('/^[a-z]{2,3}(_[a-z]{2,4})?$/i', $delLang)) {
@@ -724,18 +927,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         header("Location: admin.php#tab-translations");
         exit;
     }
-    
+
     if ($_POST['action'] === 'save_settings') {
         setSetting('shipping_address', $_POST['shipping_address'] ?? '');
         setSetting('shipping_address_visible', isset($_POST['shipping_address_visible']) ? '1' : '0');
         setSetting('shipping_address_expires_at', $_POST['shipping_address_expires_at'] ?? '');
         setSetting('general_notes', $_POST['general_notes'] ?? '');
-        
+        setSetting('currency', $_POST['currency'] ?? 'USD');
+
         $_SESSION['flash_success'] = "Settings saved successfully.";
         header("Location: admin.php");
         exit;
     }
-    
+
     if ($_POST['action'] === 'save_theme') {
         setSetting('theme_primary', $_POST['theme_primary'] ?? '#6366f1');
         setSetting('theme_accent', $_POST['theme_accent'] ?? '#a855f7');
@@ -743,30 +947,93 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         setSetting('theme_card', $_POST['theme_card'] ?? '#141419');
         setSetting('theme_text_primary', $_POST['theme_text_primary'] ?? '#f4f4f5');
         setSetting('theme_text_secondary', $_POST['theme_text_secondary'] ?? '#a1a1aa');
-        
+
         $_SESSION['flash_success'] = "Theme settings saved successfully.";
         header("Location: admin.php");
         exit;
     }
-    
+
+    if ($_POST['action'] === 'test_webhook') {
+        // Send test webhook
+        if (function_exists('sendWebhook')) {
+            $testItemData = [
+                'item_id' => 0,
+                'item_title' => 'Test Item',
+                'item_url' => 'https://example.com/test-item',
+                'item_image' => '',
+                'estimated_price' => '29.99',
+                'notes' => 'This is a test webhook payload',
+            ];
+            $testBuyerData = [
+                'buyer_name' => 'Test Buyer',
+                'buyer_proof' => 'TEST-ORDER-12345',
+                'buyer_message' => 'This is a test message from the webhook configuration.',
+                'message_public' => 'false',
+                'bought_at' => date('Y-m-d H:i:s'),
+            ];
+
+            $result = sendWebhook($testItemData, $testBuyerData, true);
+
+            // Check if AJAX request (fetch from admin.js)
+            $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+            $acceptsJson = strpos($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json') !== false;
+
+            if ($isAjax || $acceptsJson) {
+                header('Content-Type: application/json');
+                $response = [
+                    'success' => $result['success'],
+                    'message' => $result['success']
+                        ? "Test webhook sent successfully! HTTP " . ($result['http_code'] ?? '200')
+                        : "Test webhook failed: " . $result['message'],
+                    'http_code' => $result['http_code'] ?? 0,
+                    'response' => $result['response'] ?? ''
+                ];
+                // Include debug info for troubleshooting
+                if (isset($result['debug'])) {
+                    $response['debug'] = $result['debug'];
+                }
+                echo json_encode($response);
+                exit;
+            }
+
+            if ($result['success']) {
+                $_SESSION['flash_success'] = "Test webhook sent successfully! HTTP " . ($result['http_code'] ?? '200');
+            } else {
+                $_SESSION['flash_error'] = "Test webhook failed: " . $result['message'];
+            }
+        } else {
+            if ($isAjax || $acceptsJson) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'Webhook function not available.']);
+                exit;
+            }
+            $_SESSION['flash_error'] = "Webhook function not available.";
+        }
+        header("Location: admin.php#tab-webhooks");
+        exit;
+    }
+
     if ($_POST['action'] === 'add_item') {
         $title = trim($_POST['title'] ?? '');
         $url = trim($_POST['url'] ?? '');
         $image_url = trim($_POST['image_url'] ?? '');
         $notes = trim($_POST['notes'] ?? '');
-        
+        $estimated_price = $_POST['estimated_price'] ?? '';
+        $estimated_price = $estimated_price !== '' ? (float) $estimated_price : null;
+
         if (empty($title) || empty($url)) {
             $_SESSION['flash_error'] = "Product title and link URL are required.";
         } else {
             // Find max sort order
-            $maxOrder = (int)$pdo->query("SELECT MAX(`sort_order`) FROM `wishlist_items`")->fetchColumn();
-            
-            $stmt = $pdo->prepare("INSERT INTO `wishlist_items` (`title`, `url`, `image_url`, `notes`, `sort_order`) VALUES (?, ?, ?, ?, ?)");
+            $maxOrder = (int) $pdo->query("SELECT MAX(`sort_order`) FROM `wishlist_items`")->fetchColumn();
+
+            $stmt = $pdo->prepare("INSERT INTO `wishlist_items` (`title`, `url`, `image_url`, `notes`, `estimated_price`, `sort_order`) VALUES (?, ?, ?, ?, ?, ?)");
             $stmt->execute([
-                $title, 
-                $url, 
-                !empty($image_url) ? $image_url : null, 
-                !empty($notes) ? $notes : null, 
+                $title,
+                $url,
+                !empty($image_url) ? $image_url : null,
+                !empty($notes) ? $notes : null,
+                $estimated_price,
                 $maxOrder + 1
             ]);
             $_SESSION['flash_success'] = "Item added to your wishlist successfully.";
@@ -774,23 +1041,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         header("Location: admin.php");
         exit;
     }
-    
+
     if ($_POST['action'] === 'edit_item') {
-        $id = (int)($_POST['id'] ?? 0);
+        $id = (int) ($_POST['id'] ?? 0);
         $title = trim($_POST['title'] ?? '');
         $url = trim($_POST['url'] ?? '');
         $image_url = trim($_POST['image_url'] ?? '');
         $notes = trim($_POST['notes'] ?? '');
-        
+        $estimated_price = $_POST['estimated_price'] ?? '';
+        $estimated_price = $estimated_price !== '' ? (float) $estimated_price : null;
+        $buyer_message = trim($_POST['buyer_message'] ?? '');
+        $message_public = isset($_POST['message_public']) ? 1 : 0;
+
         if ($id <= 0 || empty($title) || empty($url)) {
             $_SESSION['flash_error'] = "Invalid item configuration. Title and URL are required.";
         } else {
-            $stmt = $pdo->prepare("UPDATE `wishlist_items` SET `title` = ?, `url` = ?, `image_url` = ?, `notes` = ? WHERE `id` = ?");
+            $stmt = $pdo->prepare("UPDATE `wishlist_items` SET `title` = ?, `url` = ?, `image_url` = ?, `notes` = ?, `estimated_price` = ?, `buyer_message` = ?, `message_public` = ? WHERE `id` = ?");
             $stmt->execute([
-                $title, 
-                $url, 
-                !empty($image_url) ? $image_url : null, 
-                !empty($notes) ? $notes : null, 
+                $title,
+                $url,
+                !empty($image_url) ? $image_url : null,
+                !empty($notes) ? $notes : null,
+                $estimated_price,
+                !empty($buyer_message) ? $buyer_message : null,
+                $message_public,
                 $id
             ]);
             $_SESSION['flash_success'] = "Wishlist item updated successfully.";
@@ -803,7 +1077,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $currentPassword = $_POST['current_password'] ?? '';
         $newPassword = $_POST['new_password'] ?? '';
         $confirmPassword = $_POST['confirm_password'] ?? '';
-        
+
         if (empty($currentPassword) || empty($newPassword) || empty($confirmPassword)) {
             $_SESSION['flash_error'] = "All password fields are required.";
         } elseif ($newPassword !== $confirmPassword) {
@@ -816,7 +1090,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $stmt = $pdo->prepare("SELECT `password_hash` FROM `users` WHERE `username` = ?");
                 $stmt->execute([$username]);
                 $user = $stmt->fetch();
-                
+
                 if ($user && password_verify($currentPassword, $user['password_hash'])) {
                     $newHash = password_hash($newPassword, PASSWORD_BCRYPT);
                     $updateStmt = $pdo->prepare("UPDATE `users` SET `password_hash` = ? WHERE `username` = ?");
@@ -832,11 +1106,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         header("Location: admin.php");
         exit;
     }
+
+    if ($_POST['action'] === 'save_webhook') {
+        setSetting('webhook_url', trim($_POST['webhook_url'] ?? ''));
+        setSetting('webhook_query_params', trim($_POST['webhook_query_params'] ?? ''));
+        setSetting('webhook_secret', trim($_POST['webhook_secret'] ?? ''));
+        setSetting('webhook_method', $_POST['webhook_method'] ?? 'POST');
+        setSetting('webhook_content_type', $_POST['webhook_content_type'] ?? 'application/json');
+        setSetting('webhook_body_template', $_POST['webhook_body_template'] ?? '');
+        setSetting('webhook_timeout', (int) ($_POST['webhook_timeout'] ?? 10));
+        setSetting('webhook_enabled', isset($_POST['webhook_enabled']) ? '1' : '0');
+        setSetting('webhook_verify_ssl', isset($_POST['webhook_verify_ssl']) ? '1' : '0');
+
+        $_SESSION['flash_success'] = "Webhook settings saved successfully.";
+        header("Location: admin.php");
+        exit;
+    }
 }
 
 // Handle GET Actions (Delete, Toggle Bought)
 if (isset($_GET['delete'])) {
-    $id = (int)$_GET['delete'];
+    $id = (int) $_GET['delete'];
     $stmt = $pdo->prepare("DELETE FROM `wishlist_items` WHERE `id` = ?");
     $stmt->execute([$id]);
     $_SESSION['flash_success'] = "Wishlist item removed.";
@@ -845,13 +1135,13 @@ if (isset($_GET['delete'])) {
 }
 
 if (isset($_GET['toggle_bought'])) {
-    $id = (int)$_GET['toggle_bought'];
+    $id = (int) $_GET['toggle_bought'];
     $stmt = $pdo->prepare("SELECT `is_bought` FROM `wishlist_items` WHERE `id` = ?");
     $stmt->execute([$id]);
     $item = $stmt->fetch();
-    
+
     if ($item) {
-        $newBought = (int)$item['is_bought'] === 1 ? 0 : 1;
+        $newBought = (int) $item['is_bought'] === 1 ? 0 : 1;
         if ($newBought === 0) {
             // Reset buyer details
             $updateStmt = $pdo->prepare("UPDATE `wishlist_items` SET `is_bought` = 0, `buyer_name` = NULL, `buyer_proof` = NULL, `bought_at` = NULL WHERE `id` = ?");
@@ -867,11 +1157,31 @@ if (isset($_GET['toggle_bought'])) {
     exit;
 }
 
+if (isset($_GET['archive'])) {
+    $id = (int) $_GET['archive'];
+    $stmt = $pdo->prepare("UPDATE `wishlist_items` SET `is_archived` = 1 WHERE `id` = ?");
+    $stmt->execute([$id]);
+    $_SESSION['flash_success'] = "Item archived.";
+    header("Location: admin.php");
+    exit;
+}
+
+if (isset($_GET['unarchive'])) {
+    $id = (int) $_GET['unarchive'];
+    $stmt = $pdo->prepare("UPDATE `wishlist_items` SET `is_archived` = 0 WHERE `id` = ?");
+    $stmt->execute([$id]);
+    $_SESSION['flash_success'] = "Item unarchived.";
+    header("Location: admin.php");
+    exit;
+}
+
 // Fetch settings
 $shippingAddress = getSetting('shipping_address', '');
 $shippingAddressVisible = getSetting('shipping_address_visible', '1') === '1';
 $shippingAddressExpiresAt = getSetting('shipping_address_expires_at', '');
 $generalNotes = getSetting('general_notes', '');
+$currency = getSetting('currency', 'USD');
+$currencies = getCurrencyList();
 
 // Fetch all wishlist items
 $items = $pdo->query("SELECT * FROM `wishlist_items` ORDER BY `sort_order` ASC")->fetchAll();
@@ -905,11 +1215,12 @@ if (file_exists($editTrFile)) {
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wishlist Admin Dashboard</title>
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/style.css?v=2">
     <?php echo getCustomStyles(); ?>
     <style>
         .admin-nav {
@@ -917,6 +1228,7 @@ if (file_exists($editTrFile)) {
             border-bottom: 1px solid var(--border-color);
             padding-bottom: 1rem;
         }
+
         .order-btn-group {
             display: flex;
             gap: 2px;
@@ -925,6 +1237,7 @@ if (file_exists($editTrFile)) {
             left: 45px;
             z-index: 10;
         }
+
         .btn-order-nav {
             padding: 2px 6px;
             font-size: 0.75rem;
@@ -934,11 +1247,13 @@ if (file_exists($editTrFile)) {
             border-radius: 4px;
             cursor: pointer;
         }
+
         .btn-order-nav:hover {
             background: var(--primary);
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <!-- Dashboard Header -->
@@ -947,12 +1262,15 @@ if (file_exists($editTrFile)) {
                 <span class="logo-icon">🛠️</span>
                 <h1><?= h(__('admin_panel_title', 'Admin Control Panel')) ?></h1>
             </div>
-            <p class="subtitle"><?= h(__('admin_panel_subtitle', 'Manage items, sort manually, view purchase verifications, and edit configurations.')) ?></p>
+            <p class="subtitle">
+                <?= h(__('admin_panel_subtitle', 'Manage items, sort manually, view purchase verifications, and edit configurations.')) ?>
+            </p>
         </header>
 
         <!-- Navigation -->
         <div class="nav-bar admin-nav">
-            <span class="text-sm text-muted"><?= sprintf(__('admin_logged_in_as', 'Logged in as: <strong>%s</strong>'), h($_SESSION['admin_user'])) ?></span>
+            <span
+                class="text-sm text-muted"><?= sprintf(__('admin_logged_in_as', 'Logged in as: <strong>%s</strong>'), h($_SESSION['admin_user'])) ?></span>
             <div class="flex gap-2" style="align-items: center;">
                 <form method="GET" action="" style="display: inline-block; margin: 0;">
                     <div class="lang-select-wrapper">
@@ -965,7 +1283,8 @@ if (file_exists($editTrFile)) {
                         </select>
                     </div>
                 </form>
-                <a href="index.php" class="btn btn-secondary btn-sm"><?= h(__('admin_view_public', '👁️ View Public List')) ?></a>
+                <a href="index.php"
+                    class="btn btn-secondary btn-sm"><?= h(__('admin_view_public', '👁️ View Public List')) ?></a>
                 <a href="logout.php" class="btn btn-danger btn-sm"><?= h(__('admin_sign_out', '🚪 Sign Out')) ?></a>
             </div>
         </div>
@@ -973,7 +1292,8 @@ if (file_exists($editTrFile)) {
         <!-- Security Warnings -->
         <?php if (!empty($securityWarnings)): ?>
             <?php foreach ($securityWarnings as $warning): ?>
-                <div class="flash-message flash-danger" style="margin-bottom: 1rem; border-left: 4px solid #ef4444; text-align: left;">
+                <div class="flash-message flash-danger"
+                    style="margin-bottom: 1rem; border-left: 4px solid #ef4444; text-align: left;">
                     <span><?= $warning ?></span>
                 </div>
             <?php endforeach; ?>
@@ -993,9 +1313,13 @@ if (file_exists($editTrFile)) {
 
         <!-- Tab Navigation -->
         <div class="tab-navigation">
-            <button class="tab-btn active" data-tab="items"><?= h(__('admin_tab_items', '📋 Wishlist Items')) ?></button>
-            <button class="tab-btn" data-tab="settings"><?= h(__('admin_tab_settings', '⚙️ Settings & Security')) ?></button>
-            <button class="tab-btn" data-tab="translations"><?= h(__('admin_tab_translations', '🌐 Translations')) ?></button>
+            <button class="tab-btn active"
+                data-tab="items"><?= h(__('admin_tab_items', '📋 Wishlist Items')) ?></button>
+            <button class="tab-btn"
+                data-tab="settings"><?= h(__('admin_tab_settings', '⚙️ Settings & Security')) ?></button>
+            <button class="tab-btn"
+                data-tab="translations"><?= h(__('admin_tab_translations', '🌐 Translations')) ?></button>
+            <button class="tab-btn" data-tab="webhooks"><?= h(__('admin_tab_webhooks', '🔗 Webhooks')) ?></button>
         </div>
 
         <!-- Tab Content: Items -->
@@ -1006,12 +1330,14 @@ if (file_exists($editTrFile)) {
                     <!-- Add New Item Section -->
                     <div class="add-item-box">
                         <h3 class="mb-4"><?= h(__('admin_add_item_title', '➕ Add Wishlist Item')) ?></h3>
-                        
+
                         <div class="form-group">
                             <label for="scrape-url"><?= h(__('admin_paste_link', 'Paste Product Link')) ?></label>
                             <div class="url-input-container">
-                                <input type="url" id="scrape-url" placeholder="https://example.com/product-page" autocomplete="off">
-                                <button type="button" id="btn-scrape" class="btn btn-primary"><?= h(__('admin_fetch_details', 'Fetch Details')) ?></button>
+                                <input type="url" id="scrape-url" placeholder="https://example.com/product-page"
+                                    autocomplete="off">
+                                <button type="button" id="btn-scrape"
+                                    class="btn btn-primary"><?= h(__('admin_fetch_details', 'Fetch Details')) ?></button>
                             </div>
                             <div id="scrape-loading" class="scraping-indicator">
                                 <div class="spinner"></div>
@@ -1022,7 +1348,7 @@ if (file_exists($editTrFile)) {
                         <!-- Add form (reveals details once scraped or manually entered) -->
                         <form action="admin.php" method="POST" id="form-add-item">
                             <input type="hidden" name="action" value="add_item">
-                            
+
                             <div class="form-group">
                                 <label for="add-title"><?= h(__('admin_product_title', 'Product Title')) ?></label>
                                 <input type="text" id="add-title" name="title" placeholder="Enter title" required>
@@ -1035,19 +1361,30 @@ if (file_exists($editTrFile)) {
 
                             <div class="form-group">
                                 <label for="add-image"><?= h(__('admin_image_url', 'Image URL')) ?></label>
-                                <input type="url" id="add-image" name="image_url" placeholder="https://... (or leave empty)">
+                                <input type="url" id="add-image" name="image_url"
+                                    placeholder="https://... (or leave empty)">
                                 <div class="preview-pane mt-2" id="add-image-preview-container">
-                                    <span class="text-xs text-muted block mb-1"><?= h(__('admin_image_preview', 'Image Preview:')) ?></span>
+                                    <span
+                                        class="text-xs text-muted block mb-1"><?= h(__('admin_image_preview', 'Image Preview:')) ?></span>
                                     <img src="" alt="" class="preview-image" id="add-image-preview">
                                 </div>
                             </div>
 
                             <div class="form-group">
-                                <label for="add-notes"><?= h(__('admin_notes_label', 'Notes (Size, color, preferences)')) ?></label>
-                                <textarea id="add-notes" name="notes" rows="2" placeholder="e.g. Size M, color black"></textarea>
+                                <label
+                                    for="add-notes"><?= h(__('admin_notes_label', 'Notes (Size, color, preferences)')) ?></label>
+                                <textarea id="add-notes" name="notes" rows="2"
+                                    placeholder="e.g. Size M, color black"></textarea>
                             </div>
 
-                            <button type="submit" class="btn btn-primary btn-block"><?= h(__('admin_add_button', 'Add to Wishlist')) ?></button>
+                            <div class="form-group">
+                                <label for="add-price"><?= h(__('estimated_price_label', 'Estimated Price')) ?></label>
+                                <input type="number" id="add-price" name="estimated_price" step="0.01" min="0"
+                                    placeholder="<?= h(__('estimated_price_placeholder', 'e.g. 49.99')) ?>">
+                            </div>
+
+                            <button type="submit"
+                                class="btn btn-primary btn-block"><?= h(__('admin_add_button', 'Add to Wishlist')) ?></button>
                         </form>
                     </div>
                 </div>
@@ -1055,29 +1392,39 @@ if (file_exists($editTrFile)) {
                 <!-- RIGHT COLUMN: Interactive Sortable Wishlist Grid -->
                 <div class="wishlist-container">
                     <h3 class="mb-4"><?= h(__('admin_current_items', '📋 Current Wishlist Items')) ?></h3>
-                    <p class="text-xs text-muted mb-4">💡 <?= h(__('admin_drag_drop_info', 'Drag and drop cards to reorder. Mobile users can use the arrow buttons (↑/↓) to sort items.')) ?></p>
-                    
+                    <p class="text-xs text-muted mb-4">💡
+                        <?= h(__('admin_drag_drop_info', 'Drag and drop cards to reorder. Mobile users can use the arrow buttons (↑/↓) to sort items.')) ?>
+                    </p>
+
                     <div class="wishlist-grid" id="sortable-list">
                         <?php if (empty($items)): ?>
                             <div class="info-card text-center" style="grid-column: 1/-1;">
-                                <p class="text-muted"><?= h(__('admin_empty_wishlist', 'Your wishlist is currently empty. Use the form on the left to add items!')) ?></p>
+                                <p class="text-muted">
+                                    <?= h(__('admin_empty_wishlist', 'Your wishlist is currently empty. Use the form on the left to add items!')) ?>
+                                </p>
                             </div>
                         <?php else: ?>
                             <?php foreach ($items as $item): ?>
-                                <div class="item-card sortable-item <?= $item['is_bought'] ? 'bought' : '' ?>" data-id="<?= $item['id'] ?>" draggable="true">
+                                <div class="item-card sortable-item <?= $item['is_bought'] ? 'bought' : '' ?> <?= $item['is_archived'] ? 'archived' : '' ?>"
+                                    data-id="<?= $item['id'] ?>" draggable="true">
                                     <span class="drag-handle">☰</span>
                                     <div class="order-btn-group">
                                         <button class="btn-order-nav btn-move-up" title="Move Up">▲</button>
                                         <button class="btn-order-nav btn-move-down" title="Move Down">▼</button>
                                     </div>
 
-                                    <?php if ($item['is_bought']): ?>
+                                    <?php if ($item['is_archived']): ?>
+                                        <span class="bought-badge"
+                                            style="background: var(--warning); color: #000;"><?= h(__('admin_archived_badge', 'ARCHIVED')) ?></span>
+                                    <?php elseif ($item['is_bought']): ?>
                                         <span class="bought-badge"><?= h(__('bought_badge', 'BOUGHT')) ?></span>
                                     <?php endif; ?>
 
                                     <div class="item-image-wrapper">
                                         <?php if ($item['image_url']): ?>
-                                            <img src="<?= h($item['image_url']) ?>" alt="<?= h($item['title']) ?>" class="item-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                            <img src="<?= h($item['image_url']) ?>" alt="<?= h($item['title']) ?>"
+                                                class="item-image"
+                                                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                             <div class="item-placeholder" style="display:none;">
                                                 <span>🎁</span>
                                                 <span><?= h(__('no_image_loaded', 'No Image Loaded')) ?></span>
@@ -1092,38 +1439,66 @@ if (file_exists($editTrFile)) {
 
                                     <div class="item-content">
                                         <h4 class="item-title" title="<?= h($item['title']) ?>"><?= h($item['title']) ?></h4>
-                                        
+
                                         <?php if ($item['notes']): ?>
                                             <p class="item-notes" title="<?= h($item['notes']) ?>"><?= h($item['notes']) ?></p>
                                         <?php else: ?>
-                                            <p class="item-notes text-muted"><?= h(__('admin_no_notes', 'No specific notes.')) ?></p>
+                                            <p class="item-notes text-muted"><?= h(__('admin_no_notes', 'No specific notes.')) ?>
+                                            </p>
+                                        <?php endif; ?>
+
+                                        <?php if ($item['estimated_price'] !== null): ?>
+                                            <div class="item-price">~ $<?= number_format((float) $item['estimated_price'], 2) ?>
+                                            </div>
                                         <?php endif; ?>
 
                                         <!-- Admin Proof Area -->
                                         <?php if ($item['is_bought']): ?>
-                                            <div style="background: rgba(16, 185, 129, 0.08); padding: 8px; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.2); margin-bottom: 12px; word-break: break-all;">
-                                                <span class="text-xs text-muted block"><?= h(__('admin_purchased_by', 'Purchased by:')) ?></span>
-                                                <strong class="text-sm block" style="color: var(--success);"><?= h($item['buyer_name']) ?></strong>
-                                                <span class="text-xs text-muted block mt-1"><?= h(__('admin_verification_proof', 'Verification Proof:')) ?></span>
-                                                <code class="text-xs" style="color: var(--text-primary); white-space: pre-wrap; display: block;"><?= h($item['buyer_proof']) ?></code>
+                                            <div
+                                                style="background: rgba(16, 185, 129, 0.08); padding: 8px; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.2); margin-bottom: 12px; word-break: break-all;">
+                                                <span
+                                                    class="text-xs text-muted block"><?= h(__('admin_purchased_by', 'Purchased by:')) ?></span>
+                                                <strong class="text-sm block"
+                                                    style="color: var(--success);"><?= h($item['buyer_name']) ?></strong>
+                                                <span
+                                                    class="text-xs text-muted block mt-1"><?= h(__('admin_verification_proof', 'Verification Proof:')) ?></span>
+                                                <code class="text-xs"
+                                                    style="color: var(--text-primary); white-space: pre-wrap; display: block;"><?= h($item['buyer_proof']) ?></code>
+
+                                                <?php if (!empty($item['buyer_message'])): ?>
+                                                    <span
+                                                        class="text-xs text-muted block mt-2"><?= h($item['message_public'] ? __('admin_buyer_public_message', "Buyer's Public Message:") : __('admin_buyer_private_message', "Buyer's Private Message (Admin Only):")) ?></span>
+                                                    <code class="text-xs"
+                                                        style="color: var(--text-primary); white-space: pre-wrap; display: block; margin-top: 4px; padding: 8px; background: <?= $item['message_public'] ? 'rgba(99, 102, 241, 0.1)' : 'rgba(249, 115, 22, 0.1)' ?>; border-radius: 6px; border: 1px solid <?= $item['message_public'] ? 'rgba(99, 102, 241, 0.2)' : 'rgba(249, 115, 22, 0.2)' ?>;"><?= h($item['buyer_message']) ?></code>
+                                                <?php endif; ?>
                                             </div>
                                         <?php endif; ?>
 
                                         <div class="item-actions">
-                                            <a href="<?= h($item['url']) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm"><?= h(__('admin_open_link', '🌐 Open Link')) ?></a>
-                                            <button class="btn btn-secondary btn-sm btn-edit" 
-                                                    data-id="<?= $item['id'] ?>"
-                                                    data-title="<?= h($item['title']) ?>"
-                                                    data-url="<?= h($item['url']) ?>"
-                                                    data-image="<?= h($item['image_url']) ?>"
-                                                    data-notes="<?= h($item['notes']) ?>">
+                                            <a href="<?= h($item['url']) ?>" target="_blank" rel="noopener noreferrer"
+                                                class="btn btn-secondary btn-sm"><?= h(__('admin_open_link', '🌐 Open Link')) ?></a>
+                                            <button class="btn btn-secondary btn-sm btn-edit" data-id="<?= $item['id'] ?>"
+                                                data-title="<?= h($item['title']) ?>" data-url="<?= h($item['url']) ?>"
+                                                data-image="<?= h($item['image_url']) ?>" data-notes="<?= h($item['notes']) ?>"
+                                                data-price="<?= h($item['estimated_price']) ?>"
+                                                data-buyer-message="<?= h($item['buyer_message'] ?? '') ?>"
+                                                data-message-public="<?= $item['message_public'] ? '1' : '0' ?>">
                                                 <?= h(__('admin_edit', '✏️ Edit')) ?>
                                             </button>
                                             <div class="flex gap-2">
-                                                <a href="admin.php?toggle_bought=<?= $item['id'] ?>" class="btn btn-secondary btn-sm" style="flex-grow: 1;">
+                                                <a href="admin.php?toggle_bought=<?= $item['id'] ?>"
+                                                    class="btn btn-secondary btn-sm" style="flex-grow: 1;">
                                                     <?= $item['is_bought'] ? h(__('admin_unmark', '↩️ Unmark')) : h(__('admin_mark_bought_btn', '✅ Mark Bought')) ?>
                                                 </a>
-                                                <a href="admin.php?delete=<?= $item['id'] ?>" class="btn btn-danger btn-sm" onclick="return confirm(<?= h(json_encode(__('admin_delete_confirm', 'Remove this item from your wishlist?'))) ?>);" title="Delete">🗑️</a>
+                                                <a href="admin.php?<?= $item['is_archived'] ? 'unarchive' : 'archive' ?>=<?= $item['id'] ?>"
+                                                    class="btn btn-warning btn-sm"
+                                                    onclick="return confirm(<?= h(json_encode($item['is_archived'] ? __('admin_unarchive_confirm', 'Unarchive this item? It will become visible on the public wishlist again.') : __('admin_archive_confirm', 'Archive this item? It will be hidden from the public wishlist but remain visible to you.'))) ?>);"
+                                                    title="<?= $item['is_archived'] ? h(__('admin_unarchive', '📤 Unarchive')) : h(__('admin_archive', '📦 Archive')) ?>">
+                                                    <?= $item['is_archived'] ? '📤' : '📦' ?>
+                                                </a>
+                                                <a href="admin.php?delete=<?= $item['id'] ?>" class="btn btn-danger btn-sm"
+                                                    onclick="return confirm(<?= h(json_encode(__('admin_delete_confirm', 'Remove this item from your wishlist?'))) ?>);"
+                                                    title="Delete">🗑️</a>
                                             </div>
                                         </div>
                                     </div>
@@ -1145,44 +1520,75 @@ if (file_exists($editTrFile)) {
                         <input type="hidden" name="action" value="save_settings">
 
                         <div class="form-group">
-                            <label for="general-notes"><?= h(__('admin_announcement_notes', 'General Announcement/Notes')) ?></label>
-                            <textarea id="general-notes" name="general_notes" rows="3" placeholder="Notes for everyone visiting..."><?= h($generalNotes) ?></textarea>
+                            <label
+                                for="general-notes"><?= h(__('admin_announcement_notes', 'General Announcement/Notes')) ?></label>
+                            <textarea id="general-notes" name="general_notes" rows="3"
+                                placeholder="Notes for everyone visiting..."><?= h($generalNotes) ?></textarea>
                         </div>
 
                         <div class="form-group">
-                            <label for="shipping-address"><?= h(__('admin_shipping_address_area', 'Shipping Address Area')) ?></label>
-                            <textarea id="shipping-address" name="shipping_address" rows="3" placeholder="Enter your full shipping address details..."><?= h($shippingAddress) ?></textarea>
+                            <label
+                                for="shipping-address"><?= h(__('admin_shipping_address_area', 'Shipping Address Area')) ?></label>
+                            <textarea id="shipping-address" name="shipping_address" rows="3"
+                                placeholder="Enter your full shipping address details..."><?= h($shippingAddress) ?></textarea>
                         </div>
 
                         <div class="checkbox-group">
-                            <input type="checkbox" id="shipping-visible" name="shipping_address_visible" value="1" <?= $shippingAddressVisible ? 'checked' : '' ?>>
-                            <label for="shipping-visible"><?= h(__('admin_shipping_visible_label', 'Make shipping address visible to visitors')) ?></label>
+                            <input type="checkbox" id="shipping-visible" name="shipping_address_visible" value="1"
+                                <?= $shippingAddressVisible ? 'checked' : '' ?>>
+                            <label
+                                for="shipping-visible"><?= h(__('admin_shipping_visible_label', 'Make shipping address visible to visitors')) ?></label>
                         </div>
 
                         <div class="form-group">
-                            <label for="shipping-deadline"><?= h(__('admin_visibility_deadline', 'Visibility Deadline (Optional)')) ?></label>
-                            <input type="datetime-local" id="shipping-deadline" name="shipping_address_expires_at" value="<?= h($shippingAddressExpiresAt) ?>">
-                            <span class="text-xs text-muted"><?= h(__('admin_visibility_deadline_desc', 'The shipping address will automatically hide after this time. Leave empty for permanent visibility.')) ?></span>
+                            <label
+                                for="shipping-deadline"><?= h(__('admin_visibility_deadline', 'Visibility Deadline (Optional)')) ?></label>
+                            <input type="datetime-local" id="shipping-deadline" name="shipping_address_expires_at"
+                                value="<?= h($shippingAddressExpiresAt) ?>">
+                            <span
+                                class="text-xs text-muted"><?= h(__('admin_visibility_deadline_desc', 'The shipping address will automatically hide after this time. Leave empty for permanent visibility.')) ?></span>
                         </div>
 
-                        <button type="submit" class="btn btn-secondary btn-block"><?= h(__('admin_save_config', 'Save Config Settings')) ?></button>
+                        <div class="form-group">
+                            <label for="currency"><?= h(__('currency_label', 'Price Currency')) ?></label>
+                            <select id="currency" name="currency">
+                                <?php foreach ($currencies as $code => $label): ?>
+                                    <option value="<?= h($code) ?>" <?= $currency === $code ? 'selected' : '' ?>>
+                                        <?= h($label) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                            <span
+                                class="text-xs text-muted"><?= h(__('currency_help', 'Select the currency used for displaying estimated prices on the wishlist.')) ?></span>
+                        </div>
+
+                        <button type="submit"
+                            class="btn btn-secondary btn-block"><?= h(__('admin_save_config', 'Save Config Settings')) ?></button>
                     </form>
                 </div>
 
                 <!-- Theme Settings Box -->
                 <div class="add-item-box">
                     <h3 class="mb-4"><?= h(__('admin_theme_settings', '🎨 Theme & Appearance')) ?></h3>
-                    <p class="text-xs text-muted mb-4"><?= h(__('admin_theme_reset_desc', 'Choose from pre-configured color schemes or adjust individual colors below. Changes are previewed in real-time.')) ?></p>
-                    
+                    <p class="text-xs text-muted mb-4">
+                        <?= h(__('admin_theme_reset_desc', 'Choose from pre-configured color schemes or adjust individual colors below. Changes are previewed in real-time.')) ?>
+                    </p>
+
                     <div class="form-group mb-4">
                         <label><?= h(__('admin_theme_presets', 'Select a Color Preset:')) ?></label>
                         <div class="flex gap-2" style="flex-wrap: wrap; margin-top: 0.5rem;">
-                            <button type="button" class="btn btn-secondary btn-sm preset-btn" data-preset="default">Cyberpunk</button>
-                            <button type="button" class="btn btn-secondary btn-sm preset-btn" data-preset="emerald">Emerald</button>
-                            <button type="button" class="btn btn-secondary btn-sm preset-btn" data-preset="sunset">Sunset</button>
-                            <button type="button" class="btn btn-secondary btn-sm preset-btn" data-preset="ocean">Ocean</button>
-                            <button type="button" class="btn btn-secondary btn-sm preset-btn" data-preset="sakura">Sakura</button>
-                            <button type="button" class="btn btn-secondary btn-sm preset-btn" data-preset="dracula">Dracula</button>
+                            <button type="button" class="btn btn-secondary btn-sm preset-btn"
+                                data-preset="default">Cyberpunk</button>
+                            <button type="button" class="btn btn-secondary btn-sm preset-btn"
+                                data-preset="emerald">Emerald</button>
+                            <button type="button" class="btn btn-secondary btn-sm preset-btn"
+                                data-preset="sunset">Sunset</button>
+                            <button type="button" class="btn btn-secondary btn-sm preset-btn"
+                                data-preset="ocean">Ocean</button>
+                            <button type="button" class="btn btn-secondary btn-sm preset-btn"
+                                data-preset="sakura">Sakura</button>
+                            <button type="button" class="btn btn-secondary btn-sm preset-btn"
+                                data-preset="dracula">Dracula</button>
                         </div>
                     </div>
 
@@ -1191,35 +1597,52 @@ if (file_exists($editTrFile)) {
 
                         <div class="form-group">
                             <label for="theme-primary"><?= h(__('admin_theme_primary', 'Primary Color')) ?></label>
-                            <input type="color" id="theme-primary" name="theme_primary" value="<?= h(getSetting('theme_primary', '#6366f1')) ?>" class="theme-color-picker" data-var="--primary" style="height: 45px; padding: 4px; cursor: pointer;">
+                            <input type="color" id="theme-primary" name="theme_primary"
+                                value="<?= h(getSetting('theme_primary', '#6366f1')) ?>" class="theme-color-picker"
+                                data-var="--primary" style="height: 45px; padding: 4px; cursor: pointer;">
                         </div>
 
                         <div class="form-group">
                             <label for="theme-accent"><?= h(__('admin_theme_accent', 'Accent Color')) ?></label>
-                            <input type="color" id="theme-accent" name="theme_accent" value="<?= h(getSetting('theme_accent', '#a855f7')) ?>" class="theme-color-picker" data-var="--accent" style="height: 45px; padding: 4px; cursor: pointer;">
+                            <input type="color" id="theme-accent" name="theme_accent"
+                                value="<?= h(getSetting('theme_accent', '#a855f7')) ?>" class="theme-color-picker"
+                                data-var="--accent" style="height: 45px; padding: 4px; cursor: pointer;">
                         </div>
 
                         <div class="form-group">
-                            <label for="theme-background"><?= h(__('admin_theme_background', 'Background Color')) ?></label>
-                            <input type="color" id="theme-background" name="theme_background" value="<?= h(getSetting('theme_background', '#09090b')) ?>" class="theme-color-picker" data-var="--bg-main" style="height: 45px; padding: 4px; cursor: pointer;">
+                            <label
+                                for="theme-background"><?= h(__('admin_theme_background', 'Background Color')) ?></label>
+                            <input type="color" id="theme-background" name="theme_background"
+                                value="<?= h(getSetting('theme_background', '#09090b')) ?>" class="theme-color-picker"
+                                data-var="--bg-main" style="height: 45px; padding: 4px; cursor: pointer;">
                         </div>
 
                         <div class="form-group">
                             <label for="theme-card"><?= h(__('admin_theme_card', 'Card Background Color')) ?></label>
-                            <input type="color" id="theme-card" name="theme_card" value="<?= h(getSetting('theme_card', '#141419')) ?>" class="theme-color-picker" data-var="--bg-card" style="height: 45px; padding: 4px; cursor: pointer;">
+                            <input type="color" id="theme-card" name="theme_card"
+                                value="<?= h(getSetting('theme_card', '#141419')) ?>" class="theme-color-picker"
+                                data-var="--bg-card" style="height: 45px; padding: 4px; cursor: pointer;">
                         </div>
 
                         <div class="form-group">
-                            <label for="theme-text-primary"><?= h(__('admin_theme_text_primary', 'Primary Text Color')) ?></label>
-                            <input type="color" id="theme-text-primary" name="theme_text_primary" value="<?= h(getSetting('theme_text_primary', '#f4f4f5')) ?>" class="theme-color-picker" data-var="--text-primary" style="height: 45px; padding: 4px; cursor: pointer;">
+                            <label
+                                for="theme-text-primary"><?= h(__('admin_theme_text_primary', 'Primary Text Color')) ?></label>
+                            <input type="color" id="theme-text-primary" name="theme_text_primary"
+                                value="<?= h(getSetting('theme_text_primary', '#f4f4f5')) ?>" class="theme-color-picker"
+                                data-var="--text-primary" style="height: 45px; padding: 4px; cursor: pointer;">
                         </div>
 
                         <div class="form-group">
-                            <label for="theme-text-secondary"><?= h(__('admin_theme_text_secondary', 'Secondary Text Color')) ?></label>
-                            <input type="color" id="theme-text-secondary" name="theme_text_secondary" value="<?= h(getSetting('theme_text_secondary', '#a1a1aa')) ?>" class="theme-color-picker" data-var="--text-secondary" style="height: 45px; padding: 4px; cursor: pointer;">
+                            <label
+                                for="theme-text-secondary"><?= h(__('admin_theme_text_secondary', 'Secondary Text Color')) ?></label>
+                            <input type="color" id="theme-text-secondary" name="theme_text_secondary"
+                                value="<?= h(getSetting('theme_text_secondary', '#a1a1aa')) ?>"
+                                class="theme-color-picker" data-var="--text-secondary"
+                                style="height: 45px; padding: 4px; cursor: pointer;">
                         </div>
 
-                        <button type="submit" class="btn btn-secondary btn-block mt-4"><?= h(__('admin_save_theme', 'Save Theme Settings')) ?></button>
+                        <button type="submit"
+                            class="btn btn-secondary btn-block mt-4"><?= h(__('admin_save_theme', 'Save Theme Settings')) ?></button>
                     </form>
                 </div>
 
@@ -1230,23 +1653,30 @@ if (file_exists($editTrFile)) {
                         <input type="hidden" name="action" value="change_password">
 
                         <div class="form-group">
-                            <label for="current-password"><?= h(__('admin_current_password', 'Current Password')) ?></label>
-                            <input type="password" id="current-password" name="current_password" placeholder="••••••••" required>
+                            <label
+                                for="current-password"><?= h(__('admin_current_password', 'Current Password')) ?></label>
+                            <input type="password" id="current-password" name="current_password" placeholder="••••••••"
+                                required>
                         </div>
 
                         <div class="form-group">
                             <label for="new-password"><?= h(__('admin_new_password', 'New Password')) ?></label>
-                            <input type="password" id="new-password" name="new_password" placeholder="Minimum 6 characters" required>
+                            <input type="password" id="new-password" name="new_password"
+                                placeholder="Minimum 6 characters" required>
                         </div>
 
                         <div class="form-group">
-                            <label for="confirm-password"><?= h(__('admin_confirm_password', 'Confirm New Password')) ?></label>
-                            <input type="password" id="confirm-password" name="confirm_password" placeholder="Repeat new password" required>
+                            <label
+                                for="confirm-password"><?= h(__('admin_confirm_password', 'Confirm New Password')) ?></label>
+                            <input type="password" id="confirm-password" name="confirm_password"
+                                placeholder="Repeat new password" required>
                         </div>
 
-                        <button type="submit" class="btn btn-secondary btn-block"><?= h(__('admin_update_password', 'Update Password')) ?></button>
+                        <button type="submit"
+                            class="btn btn-secondary btn-block"><?= h(__('admin_update_password', 'Update Password')) ?></button>
                     </form>
                 </div>
+
             </div>
         </div>
 
@@ -1254,44 +1684,60 @@ if (file_exists($editTrFile)) {
         <div class="tab-content" id="tab-translations">
             <div class="add-item-box">
                 <h3 class="mb-4">🌐 <?= h(__('admin_translation_management', 'Translation Management')) ?></h3>
-                <p class="text-xs text-muted mb-4">💡 <?= h(__('admin_edit_translations_desc', 'Edit the translations displayed to users. Filter translation keys or values in real-time below.')) ?></p>
+                <p class="text-xs text-muted mb-4">💡
+                    <?= h(__('admin_edit_translations_desc', 'Edit the translations displayed to users. Filter translation keys or values in real-time below.')) ?>
+                </p>
 
                 <!-- Language Selector & Add/Delete Language Bar -->
-                <div style="display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border-color);">
-                    
+                <div
+                    style="display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border-color);">
+
                     <!-- Select Language to Edit -->
                     <div style="flex: 1; min-width: 250px;">
-                        <label class="text-xs text-muted block mb-2" style="font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;"><?= h(__('admin_select_language', 'Select Language to Edit:')) ?></label>
+                        <label class="text-xs text-muted block mb-2"
+                            style="font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;"><?= h(__('admin_select_language', 'Select Language to Edit:')) ?></label>
                         <div style="display: flex; gap: 0.5rem; align-items: center;">
                             <div class="lang-select-wrapper">
-                                <select id="select-edit-lang" class="lang-dropdown" onchange="window.location.href='admin.php?edit_lang=' + this.value + '#tab-translations'">
+                                <select id="select-edit-lang" class="lang-dropdown"
+                                    onchange="window.location.href='admin.php?edit_lang=' + this.value + '#tab-translations'">
                                     <?php foreach (getAvailableLanguages() as $langCode): ?>
-                                        <option value="<?= h($langCode) ?>" <?= $editLang === $langCode ? 'selected' : '' ?>><?= h(strtoupper($langCode)) ?></option>
+                                        <option value="<?= h($langCode) ?>" <?= $editLang === $langCode ? 'selected' : '' ?>>
+                                            <?= h(strtoupper($langCode)) ?>
+                                        </option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
-                            
+
                             <?php if ($editLang !== 'tr' && $editLang !== 'en'): ?>
-                                <form action="admin.php" method="POST" onsubmit="return confirm(<?= h(json_encode(sprintf(__('admin_delete_language_confirm', "Are you sure you want to delete the language '%s'? This will delete the lang file and cannot be undone."), strtoupper($editLang)))) ?>);" style="margin: 0;">
+                                <form action="admin.php" method="POST"
+                                    onsubmit="return confirm(<?= h(json_encode(sprintf(__('admin_delete_language_confirm', "Are you sure you want to delete the language '%s'? This will delete the lang file and cannot be undone."), strtoupper($editLang)))) ?>);"
+                                    style="margin: 0;">
                                     <input type="hidden" name="action" value="delete_language">
                                     <input type="hidden" name="lang_code" value="<?= h($editLang) ?>">
-                                    <button type="submit" class="btn btn-danger btn-sm"><?= h(__('admin_btn_delete_language', '🗑️ Delete Language')) ?></button>
+                                    <button type="submit"
+                                        class="btn btn-danger btn-sm"><?= h(__('admin_btn_delete_language', '🗑️ Delete Language')) ?></button>
                                 </form>
                             <?php endif; ?>
                         </div>
                     </div>
 
                     <!-- Add New Language Form -->
-                    <form action="admin.php" method="POST" style="margin: 0; flex: 1; min-width: 280px; display: flex; flex-direction: column;">
+                    <form action="admin.php" method="POST"
+                        style="margin: 0; flex: 1; min-width: 280px; display: flex; flex-direction: column;">
                         <input type="hidden" name="action" value="create_language">
-                        <label for="new-lang-code" class="text-xs text-muted block mb-2" style="font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;"><?= h(__('admin_add_new_language', '➕ Add New Language')) ?></label>
+                        <label for="new-lang-code" class="text-xs text-muted block mb-2"
+                            style="font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;"><?= h(__('admin_add_new_language', '➕ Add New Language')) ?></label>
                         <div style="display: flex; gap: 0.5rem;">
-                            <input type="text" id="new-lang-code" name="new_lang_code" placeholder="<?= h(__('admin_language_code', 'Language Code (e.g. de, fr, es)')) ?>" pattern="^[a-zA-Z]{2,3}(_[a-zA-Z]{2,4})?$" required style="flex-grow: 1; padding: 6px 12px; font-size: 0.85rem;">
-                            <button type="submit" class="btn btn-primary" style="padding: 6px 16px; font-size: 0.85rem; font-weight: 600;"><?= h(__('admin_btn_add_language', 'Add')) ?></button>
+                            <input type="text" id="new-lang-code" name="new_lang_code"
+                                placeholder="<?= h(__('admin_language_code', 'Language Code (e.g. de, fr, es)')) ?>"
+                                pattern="^[a-zA-Z]{2,3}(_[a-zA-Z]{2,4})?$" required
+                                style="flex-grow: 1; padding: 6px 12px; font-size: 0.85rem;">
+                            <button type="submit" class="btn btn-primary"
+                                style="padding: 6px 16px; font-size: 0.85rem; font-weight: 600;"><?= h(__('admin_btn_add_language', 'Add')) ?></button>
                         </div>
                     </form>
                 </div>
-                
+
                 <!-- Empty Translations Warning Banner -->
                 <?php
                 $emptyCount = 0;
@@ -1301,35 +1747,40 @@ if (file_exists($editTrFile)) {
                     }
                 }
                 ?>
-                <div id="empty-translations-warning" class="flash-message flash-warning" style="display: <?= $emptyCount > 0 ? 'flex' : 'none' ?>; margin-bottom: 1.5rem;">
+                <div id="empty-translations-warning" class="flash-message flash-warning"
+                    style="display: <?= $emptyCount > 0 ? 'flex' : 'none' ?>; margin-bottom: 1.5rem;">
                     <div>
-                        <strong>⚠️ Notice:</strong> <span id="empty-translations-count"><?= $emptyCount ?></span> translation box(es) are empty. They will default to their English versions on the public page.
+                        <strong>⚠️ Notice:</strong> <span id="empty-translations-count"><?= $emptyCount ?></span>
+                        translation box(es) are empty. They will default to their English versions on the public page.
                     </div>
                 </div>
 
                 <!-- Search bar for filtering -->
                 <div class="translation-search-container mb-4" style="position: relative;">
                     <span class="translation-search-icon">🔍</span>
-                    <input type="text" id="translation-search" placeholder="<?= h(__('admin_search_translations', 'Search translation keys or values...')) ?>" autocomplete="off">
+                    <input type="text" id="translation-search"
+                        placeholder="<?= h(__('admin_search_translations', 'Search translation keys or values...')) ?>"
+                        autocomplete="off">
                 </div>
 
                 <form action="admin.php" method="POST">
                     <input type="hidden" name="action" value="save_translations">
                     <input type="hidden" name="lang_code" value="<?= h($editLang) ?>">
-                    
+
                     <div class="table-container">
                         <table class="translation-table">
                             <thead>
                                 <tr>
                                     <th><?= h(__('admin_table_key', 'Translation Key')) ?></th>
                                     <th><?= h(__('admin_table_english', 'English (Default)')) ?></th>
-                                    <th><?= h(__('admin_table_translation', 'Translation')) ?> (<?= h(strtoupper($editLang)) ?>)</th>
+                                    <th><?= h(__('admin_table_translation', 'Translation')) ?>
+                                        (<?= h(strtoupper($editLang)) ?>)</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php foreach ($translationKeys as $key => $meta): 
+                                <?php foreach ($translationKeys as $key => $meta):
                                     $currentVal = $editTranslations[$key] ?? '';
-                                ?>
+                                    ?>
                                     <tr class="translation-row" data-key="<?= h($key) ?>">
                                         <td>
                                             <span class="translation-row-key"><?= h($key) ?></span>
@@ -1338,8 +1789,11 @@ if (file_exists($editTrFile)) {
                                         <td style="white-space: pre-wrap;"><?= h($meta['default']) ?></td>
                                         <td>
                                             <div style="display: flex; flex-direction: column;">
-                                                <textarea name="translations[<?= h($key) ?>]" class="translation-textarea <?= trim($currentVal) === '' ? 'empty-warning' : '' ?>" placeholder="Enter <?= h(strtoupper($editLang)) ?> translation..."><?= h($currentVal) ?></textarea>
-                                                <span class="empty-fallback-badge" style="display: <?= trim($currentVal) === '' ? 'inline-block' : 'none' ?>;">
+                                                <textarea name="translations[<?= h($key) ?>]"
+                                                    class="translation-textarea <?= trim($currentVal) === '' ? 'empty-warning' : '' ?>"
+                                                    placeholder="Enter <?= h(strtoupper($editLang)) ?> translation..."><?= h($currentVal) ?></textarea>
+                                                <span class="empty-fallback-badge"
+                                                    style="display: <?= trim($currentVal) === '' ? 'inline-block' : 'none' ?>;">
                                                     ⚠️ Empty: Falls back to "<?= h($meta['default']) ?>"
                                                 </span>
                                             </div>
@@ -1349,9 +1803,128 @@ if (file_exists($editTrFile)) {
                             </tbody>
                         </table>
                     </div>
-                    <button type="submit" class="btn btn-primary btn-block mt-4"><?= h(__('admin_save_translations', 'Save Translations')) ?></button>
+                    <button type="submit"
+                        class="btn btn-primary btn-block mt-4"><?= h(__('admin_save_translations', 'Save Translations')) ?></button>
                 </form>
             </div>
+        </div>
+    </div>
+
+    <!-- Tab Content: Webhooks -->
+    <div class="tab-content" id="tab-webhooks">
+        <div class="add-item-box">
+            <h3 class="mb-4"><?= h(__('admin_webhook_title', '🔗 Webhook Configuration')) ?></h3>
+            <p class="text-xs text-muted mb-4">
+                <?= h(__('admin_webhook_desc', 'Configure a webhook URL to receive notifications when an item is marked as bought. The webhook will receive a POST request with the purchase details.')) ?>
+            </p>
+
+            <form action="admin.php" method="POST">
+                <input type="hidden" name="action" value="save_webhook">
+
+                <div class="form-group">
+                    <label for="webhook-url"><?= h(__('admin_webhook_url_label', 'Webhook URL')) ?></label>
+                    <input type="url" id="webhook-url" name="webhook_url"
+                        placeholder="https://your-webhook-endpoint.com/webhook"
+                        value="<?= h(getSetting('webhook_url', '')) ?>" required>
+                    <span
+                        class="text-xs text-muted"><?= h(__('admin_webhook_url_help', 'The URL that will receive the POST request when an item is marked as bought. This is never shown to the public.')) ?></span>
+                </div>
+
+                <div class="form-group">
+                    <label
+                        for="webhook-query-params"><?= h(__('admin_webhook_query_params_label', 'Query Parameters (Optional)')) ?></label>
+                    <input type="text" id="webhook-query-params" name="webhook_query_params"
+                        placeholder="key1=value1&key2=value2" value="<?= h(getSetting('webhook_query_params', '')) ?>">
+                    <span
+                        class="text-xs text-muted"><?= h(__('admin_webhook_query_params_help', 'Additional query parameters to append to the webhook URL. Format: key1=value1&key2=value2')) ?></span>
+                </div>
+
+                <div class="form-group">
+                    <label
+                        for="webhook-secret"><?= h(__('admin_webhook_secret_label', 'Webhook Secret (Optional)')) ?></label>
+                    <input type="text" id="webhook-secret" name="webhook_secret"
+                        placeholder="Leave empty to disable signature verification"
+                        value="<?= h(getSetting('webhook_secret', '')) ?>">
+                    <span
+                        class="text-xs text-muted"><?= h(__('admin_webhook_secret_help', 'If provided, a X-Webhook-Signature header will be sent with HMAC-SHA256 signature of the payload. Use this to verify the request came from your wishlist.')) ?></span>
+                </div>
+
+                <div class="form-group">
+                    <label><?= h(__('admin_webhook_method_label', 'HTTP Method')) ?></label>
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <label class="radio-label"
+                            style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="radio" name="webhook_method" value="POST" <?= getSetting('webhook_method', 'POST') === 'POST' ? 'checked' : '' ?>>
+                            <span><?= h(__('admin_webhook_method_post', 'POST (Recommended)')) ?></span>
+                        </label>
+                        <label class="radio-label"
+                            style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="radio" name="webhook_method" value="PUT" <?= getSetting('webhook_method', 'POST') === 'PUT' ? 'checked' : '' ?>>
+                            <span><?= h(__('admin_webhook_method_put', 'PUT')) ?></span>
+                        </label>
+                        <label class="radio-label"
+                            style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="radio" name="webhook_method" value="PATCH" <?= getSetting('webhook_method', 'POST') === 'PATCH' ? 'checked' : '' ?>>
+                            <span><?= h(__('admin_webhook_method_patch', 'PATCH')) ?></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label
+                        for="webhook-content-type"><?= h(__('admin_webhook_content_type_label', 'Content-Type')) ?></label>
+                    <select id="webhook-content-type" name="webhook_content_type">
+                        <option value="application/json" <?= getSetting('webhook_content_type', 'application/json') === 'application/json' ? 'selected' : '' ?>>application/json</option>
+                        <option value="application/x-www-form-urlencoded" <?= getSetting('webhook_content_type', 'application/json') === 'application/x-www-form-urlencoded' ? 'selected' : '' ?>>
+                            application/x-www-form-urlencoded</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label
+                        for="webhook-body-template"><?= h(__('admin_webhook_body_label', 'Body Template (JSON with placeholders)')) ?></label>
+                    <textarea id="webhook-body-template" name="webhook_body_template" rows="8"
+                        placeholder="<?= h(__('admin_webhook_body_placeholder', '{\n  "item_id": "{{item_id}}",\n  "item_title": "{{item_title}}",\n  "item_url": "{{item_url}}",\n  "buyer_name": "{{buyer_name}}",\n  "buyer_proof": "{{buyer_proof}}",\n  "buyer_message": "{{buyer_message}}",\n  "message_public": {{message_public}},\n  "bought_at": "{{bought_at}}"\n}')) ?>"><?= h(getSetting('webhook_body_template', '')) ?></textarea>
+                    <span
+                        class="text-xs text-muted"><?= h(__('admin_webhook_body_help', 'Available placeholders: {{item_id}}, {{item_title}}, {{item_url}}, {{item_image}}, {{buyer_name}}, {{buyer_proof}}, {{buyer_message}}, {{message_public}}, {{bought_at}}, {{estimated_price}}, {{notes}}')) ?></span>
+                </div>
+
+                <div class="form-group">
+                    <label
+                        for="webhook-timeout"><?= h(__('admin_webhook_timeout_label', 'Timeout (seconds)')) ?></label>
+                    <input type="number" id="webhook-timeout" name="webhook_timeout" min="1" max="60"
+                        value="<?= h(getSetting('webhook_timeout', '10')) ?>" style="max-width: 100px;">
+                    <span
+                        class="text-xs text-muted"><?= h(__('admin_webhook_timeout_help', 'Maximum time to wait for webhook response. Default: 10 seconds.')) ?></span>
+                </div>
+
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="webhook-enabled" name="webhook_enabled" value="1"
+                        <?= getSetting('webhook_enabled', '0') === '1' ? 'checked' : '' ?>>
+                    <label
+                        for="webhook-enabled"><?= h(__('admin_webhook_enabled_label', 'Enable webhook notifications')) ?></label>
+                </div>
+
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="webhook-verify-ssl" name="webhook_verify_ssl" value="1"
+                        <?= getSetting('webhook_verify_ssl', '1') === '1' ? 'checked' : '' ?>>
+                    <label
+                        for="webhook-verify-ssl"><?= h(__('admin_webhook_verify_ssl_label', 'Verify SSL certificate')) ?></label>
+                    <span
+                        class="text-xs text-muted block mt-1"><?= h(__('admin_webhook_verify_ssl_help', 'Disable only for testing with self-signed certificates. Keep enabled for production.')) ?></span>
+                </div>
+
+                <h4 class="mt-4 mb-2"><?= h(__('admin_webhook_test_title', 'Test Webhook')) ?></h4>
+                <p class="text-xs text-muted mb-3">
+                    <?= h(__('admin_webhook_test_desc', 'Send a test payload to verify your webhook configuration.')) ?>
+                </p>
+                <button type="button" id="btn-test-webhook"
+                    class="btn btn-secondary"><?= h(__('admin_webhook_test_btn', 'Send Test Webhook')) ?></button>
+                <div id="webhook-test-result" class="mt-3" style="display: none;"></div>
+
+                <button type="submit"
+                    class="btn btn-primary btn-block mt-4"><?= h(__('admin_webhook_save_btn', 'Save Webhook Settings')) ?></button>
+            </form>
         </div>
     </div>
 
@@ -1380,21 +1953,45 @@ if (file_exists($editTrFile)) {
                     <label for="edit-image"><?= h(__('admin_image_url', 'Image URL')) ?></label>
                     <input type="url" id="edit-image" name="image_url">
                     <div class="preview-pane mt-2" id="edit-image-preview-container" style="display: block;">
-                        <span class="text-xs text-muted block mb-1"><?= h(__('admin_image_preview', 'Image Preview:')) ?></span>
+                        <span
+                            class="text-xs text-muted block mb-1"><?= h(__('admin_image_preview', 'Image Preview:')) ?></span>
                         <img src="" alt="" class="preview-image" id="edit-image-preview">
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label for="edit-notes"><?= h(__('admin_notes_label', 'Notes (Size, color, preferences)')) ?></label>
+                    <label
+                        for="edit-notes"><?= h(__('admin_notes_label', 'Notes (Size, color, preferences)')) ?></label>
                     <textarea id="edit-notes" name="notes" rows="3"></textarea>
                 </div>
 
-                <button type="submit" class="btn btn-primary btn-block"><?= h(__('admin_save_changes', 'Save Changes')) ?></button>
+                <div class="form-group">
+                    <label for="edit-price"><?= h(__('estimated_price_label', 'Estimated Price')) ?></label>
+                    <input type="number" id="edit-price" name="estimated_price" step="0.01" min="0"
+                        placeholder="<?= h(__('estimated_price_placeholder', 'e.g. 49.99')) ?>">
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-buyer-message"><?= h(__('admin_buyer_message_label', "Buyer's Message")) ?></label>
+                    <textarea id="edit-buyer-message" name="buyer_message" rows="3"
+                        placeholder="<?= h(__('admin_buyer_message_placeholder', 'Message from buyer...')) ?>"></textarea>
+                </div>
+
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="edit-message-public" name="message_public" value="1">
+                    <label
+                        for="edit-message-public"><?= h(__('admin_message_public_label', 'Make message visible on public wishlist')) ?></label>
+                    <span
+                        class="text-xs text-muted block mt-1"><?= h(__('admin_message_public_help', 'If checked, the buyer\'s message will be visible to everyone on the public wishlist. If unchecked, only visible to admin.')) ?></span>
+                </div>
+
+                <button type="submit"
+                    class="btn btn-primary btn-block"><?= h(__('admin_save_changes', 'Save Changes')) ?></button>
             </form>
         </div>
     </div>
 
     <script src="assets/js/admin.js?v=<?= filemtime(__DIR__ . '/assets/js/admin.js') ?>"></script>
 </body>
+
 </html>

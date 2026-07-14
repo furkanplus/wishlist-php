@@ -224,6 +224,25 @@ function isShippingAddressVisible() {
     }
     return true;
 }
+
+// Auto-add missing columns to wishlist_items (non-destructive)
+function ensureWishlistColumns(\$pdo) {
+    \$columns = [
+        'buyer_message' => 'TEXT DEFAULT NULL',
+        'message_public' => 'TINYINT(1) DEFAULT 0',
+        'is_archived' => 'TINYINT(1) DEFAULT 0',
+    ];
+    foreach (\$columns as \$col => \$def) {
+        try {
+            \$pdo->query('SELECT `' . \$col . '` FROM `wishlist_items` LIMIT 1');
+        } catch (PDOException \$e) {
+            if (strpos(\$e->getMessage(), 'Unknown column') !== false) {
+                \$pdo->exec('ALTER TABLE `wishlist_items` ADD COLUMN `' . \$col . '` ' . \$def);
+            }
+        }
+    }
+}
+ensureWishlistColumns(\$pdo);
 ";
             
             // 6. Try to write config.php

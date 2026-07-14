@@ -18,6 +18,7 @@ A lightweight, self-hosted, mobile-first wishlist application written in native 
   - Drag-and-drop reordering of items.
   - Set owner announcements/notes.
   - Add shipping addresses with an expiration date (for privacy, the shipping address automatically hides from the public view after a configured time).
+  - **📦 Archive Items:** Hide items from the public wishlist while keeping them visible in the admin panel for future reference.
 - **🚀 Web Setup Wizard:** Interactive installation script (`install.php`) to configure the MySQL database connection, seed default settings, register the admin user, and lock down the installation automatically.
 
 ---

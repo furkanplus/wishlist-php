@@ -80,7 +80,10 @@ document.addEventListener('DOMContentLoaded', () => {
             buyerProofInput.value = '';
             if (messagePublicToggle) messagePublicToggle.checked = false;
             if (buyerMessageInput) buyerMessageInput.value = '';
-            if (messageVisibilityHint) messageVisibilityHint.textContent = 'This message will only be visible to the wishlist owner (admin).';
+            if (messageVisibilityHint) {
+                const t = window.translations || {};
+                messageVisibilityHint.textContent = t.message_visibility_private || 'This message will only be visible to the wishlist owner (admin).';
+            }
             modalError.style.display = 'none';
             modalError.textContent = '';
             

@@ -73,7 +73,7 @@ if (empty($buyerProof)) {
 
 try {
     // Check if the item exists and is not already bought
-    $stmt = $pdo->prepare("SELECT `id`, `is_bought` FROM `wishlist_items` WHERE `id` = ?");
+    $stmt = $pdo->prepare("SELECT `id`, `is_bought`, `title`, `url`, `image_url`, `estimated_price`, `notes` FROM `wishlist_items` WHERE `id` = ?");
     $stmt->execute([$itemId]);
     $item = $stmt->fetch();
     
@@ -91,25 +91,44 @@ try {
     if (empty($buyerName)) {
         $buyerName = __('anonymous_friend', 'Anonymous Friend');
     }
-    
-    // Append message to proof if provided
-    if (!empty($buyerMessage)) {
-        $visibilityLabel = $messagePublic ? 'Public Message' : 'Private Message (Admin Only)';
-        $buyerProof = $buyerProof . "\n\n[" . $visibilityLabel . "]: " . $buyerMessage;
-    }
-    
+
     // Update item as bought
     $updateStmt = $pdo->prepare("
         UPDATE `wishlist_items` 
         SET `is_bought` = 1, 
             `buyer_name` = ?, 
             `buyer_proof` = ?, 
+            `buyer_message` = ?,
+            `message_public` = ?,
             `bought_at` = NOW() 
         WHERE `id` = ?
     ");
-    $updateResult = $updateStmt->execute([$buyerName, $buyerProof, $itemId]);
+    $updateResult = $updateStmt->execute([$buyerName, $buyerProof, $buyerMessage, $messagePublic ? 1 : 0, $itemId]);
     
     if ($updateResult) {
+        // Send webhook notification
+        $boughtAt = date('Y-m-d H:i:s');
+        $itemData = [
+            'item_id' => $item['id'],
+            'item_title' => $item['title'],
+            'item_url' => $item['url'],
+            'item_image' => $item['image_url'] ?? '',
+            'estimated_price' => $item['estimated_price'] ?? '',
+            'notes' => $item['notes'] ?? '',
+        ];
+        $buyerData = [
+            'buyer_name' => $buyerName,
+            'buyer_proof' => $buyerProof,
+            'buyer_message' => $buyerMessage,
+            'message_public' => $messagePublic ? 'true' : 'false',
+            'bought_at' => $boughtAt,
+        ];
+        
+        // Send webhook asynchronously (fire and forget)
+        if (function_exists('sendWebhook')) {
+            sendWebhook($itemData, $buyerData);
+        }
+        
         echo json_encode(['success' => true, 'message' => __('success_marked_bought', 'Thank you! Item successfully marked as bought.')]);
     } else {
         echo json_encode(['success' => false, 'message' => __('err_updating_failed', 'An error occurred while updating the item.')]);
