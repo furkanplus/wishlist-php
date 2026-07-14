@@ -75,14 +75,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Live Image Previews ---
+    const getSafeImageUrl = (rawUrl) => {
+        try {
+            const parsed = new URL(rawUrl, window.location.origin);
+            if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+                return parsed.href;
+            }
+        } catch (_) {
+            // Invalid URL
+        }
+        return '';
+    };
+
     const setupLivePreview = (inputEl, previewEl, containerEl) => {
         if (inputEl && previewEl && containerEl) {
             inputEl.addEventListener('input', () => {
                 const val = inputEl.value.trim();
-                if (val) {
-                    previewEl.src = val;
+                const safeUrl = val ? getSafeImageUrl(val) : '';
+                if (safeUrl) {
+                    previewEl.src = safeUrl;
                     containerEl.style.display = 'block';
                 } else {
+                    previewEl.removeAttribute('src');
                     containerEl.style.display = 'none';
                 }
             });
