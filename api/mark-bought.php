@@ -6,51 +6,6 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-if (!function_exists('__')) {
-    function __($key, $default = '') {
-        static $translations = null;
-        
-        $lang = $_SESSION['lang'] ?? $_COOKIE['lang'] ?? 'en';
-        if ($lang === 'en') {
-            return $default;
-        }
-        
-        if ($translations === null) {
-            $translations = [];
-            $file = __DIR__ . '/../lang/' . $lang . '.php';
-            if (file_exists($file)) {
-                $translations = include $file;
-            } else {
-                // Backward compatibility / auto-migration from database
-                global $pdo;
-                if (isset($pdo)) {
-                    try {
-                        $stmt = $pdo->prepare('SELECT `translation_key`, `translation_value` FROM `translations` WHERE `lang` = ?');
-                        $stmt->execute([$lang]);
-                        $rows = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
-                        if ($rows) {
-                            $translations = $rows;
-                            // Attempt to cache translations to static PHP file
-                            $langDir = __DIR__ . '/../lang';
-                            if (!is_dir($langDir)) {
-                                @mkdir($langDir, 0755, true);
-                            }
-                            @file_put_contents($file, '<?php' . PHP_EOL . 'return ' . var_export($translations, true) . ';');
-                        }
-                    } catch (PDOException $e) {
-                        // translations table doesn't exist
-                    }
-                }
-            }
-        }
-        
-        if (isset($translations[$key]) && trim($translations[$key]) !== '') {
-            return $translations[$key];
-        }
-        return $default;
-    }
-}
-
 header('Content-Type: application/json');
 
 // Get the POST payload

@@ -514,7 +514,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (testWebhookBtn && webhookTestResult) {
         testWebhookBtn.addEventListener('click', async () => {
             testWebhookBtn.disabled = true;
-            testWebhookBtn.textContent = 'Sending...';
+            testWebhookBtn.textContent = window.translations?.admin_webhook_sending || 'Sending...';
             webhookTestResult.style.display = 'none';
             webhookTestResult.className = 'mt-3';
 
@@ -575,12 +575,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } catch (err) {
                 webhookTestResult.className = 'mt-3 flash-message flash-danger';
-                webhookTestResult.textContent = '❌ Error sending test webhook: ' + err.message;
+                webhookTestResult.textContent = '❌ ' + (window.translations?.admin_webhook_test_error || 'Error sending test webhook: ') + err.message;
             }
 
             webhookTestResult.style.display = 'block';
             testWebhookBtn.disabled = false;
-            testWebhookBtn.textContent = '🧪 Send Test Webhook';
+            testWebhookBtn.textContent = window.translations?.admin_webhook_test_btn || '🧪 Send Test Webhook';
         });
     }
 

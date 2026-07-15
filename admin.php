@@ -28,72 +28,6 @@ require_once __DIR__ . '/config.php';
 // Set security headers
 setSecurityHeaders();
 
-if (!function_exists('getAvailableLanguages')) {
-    function getAvailableLanguages()
-    {
-        $langs = ['en'];
-        $langDir = __DIR__ . '/lang';
-        if (is_dir($langDir)) {
-            $files = glob($langDir . '/*.php');
-            if ($files) {
-                foreach ($files as $file) {
-                    $code = basename($file, '.php');
-                    if ($code !== 'en' && preg_match('/^[a-z]{2,3}(_[a-z]{2,4})?$/i', $code)) {
-                        $langs[] = strtolower($code);
-                    }
-                }
-            }
-        }
-        return array_unique($langs);
-    }
-}
-
-if (!function_exists('__')) {
-    function __($key, $default = '')
-    {
-        static $translations = null;
-
-        $lang = $_SESSION['lang'] ?? $_COOKIE['lang'] ?? 'en';
-        if ($lang === 'en') {
-            return $default;
-        }
-
-        if ($translations === null) {
-            $translations = [];
-            $file = __DIR__ . '/lang/' . $lang . '.php';
-            if (file_exists($file)) {
-                $translations = include $file;
-            } else {
-                // Backward compatibility / auto-migration from database
-                global $pdo;
-                if (isset($pdo)) {
-                    try {
-                        $stmt = $pdo->prepare('SELECT `translation_key`, `translation_value` FROM `translations` WHERE `lang` = ?');
-                        $stmt->execute([$lang]);
-                        $rows = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
-                        if ($rows) {
-                            $translations = $rows;
-                            // Attempt to cache translations to static PHP file
-                            $langDir = __DIR__ . '/lang';
-                            if (!is_dir($langDir)) {
-                                @mkdir($langDir, 0755, true);
-                            }
-                            @file_put_contents($file, '<?php' . PHP_EOL . 'return ' . var_export($translations, true) . ';');
-                        }
-                    } catch (PDOException $e) {
-                        // translations table doesn't exist
-                    }
-                }
-            }
-        }
-
-        if (isset($translations[$key]) && trim($translations[$key]) !== '') {
-            return $translations[$key];
-        }
-        return $default;
-    }
-}
-
 $currentLang = $_SESSION['lang'] ?? $_COOKIE['lang'] ?? 'en';
 
 
@@ -460,8 +394,12 @@ $translationKeys = [
         'desc' => 'Instructions on the translation panel',
         'default' => '💡 Edit the translations displayed to users. Filter translation keys or values in real-time below.'
     ],
+    'admin_translation_placeholder' => [
+        'desc' => 'Placeholder for translation textarea (contains %s for language code)',
+        'default' => 'Enter %s translation...'
+    ],
     'admin_search_translations' => [
-        'desc' => 'Placeholder inside translation search bar',
+        'desc' => 'Placeholder for search translations input',
         'default' => 'Search translation keys or values...'
     ],
     'admin_select_language' => [
@@ -814,7 +752,15 @@ $translationKeys = [
     ],
     'admin_webhook_test_btn' => [
         'desc' => 'Button to test webhook',
-        'default' => 'Send Test Webhook'
+        'default' => '🧪 Send Test Webhook'
+    ],
+    'admin_webhook_sending' => [
+        'desc' => 'Button text while sending test webhook',
+        'default' => 'Sending...'
+    ],
+    'admin_webhook_test_error' => [
+        'desc' => 'Error sending test webhook',
+        'default' => 'Error sending test webhook: '
     ],
     'admin_webhook_save_btn' => [
         'desc' => 'Button to save webhook settings',
@@ -851,6 +797,138 @@ $translationKeys = [
     'err_rate_limited' => [
         'desc' => 'Error when rate limited',
         'default' => 'Too many requests. Please try again later.'
+    ],
+    'admin_title_placeholder' => [
+        'desc' => 'Placeholder for title input',
+        'default' => 'Enter title'
+    ],
+    'admin_url_placeholder' => [
+        'desc' => 'Placeholder for product URL input',
+        'default' => 'https://...'
+    ],
+    'admin_image_url_placeholder' => [
+        'desc' => 'Placeholder for image URL input',
+        'default' => 'https://... (or leave empty)'
+    ],
+    'admin_notes_placeholder' => [
+        'desc' => 'Placeholder for notes textarea',
+        'default' => 'e.g. Size M, color black'
+    ],
+    'admin_announcement_notes_placeholder' => [
+        'desc' => 'Placeholder for announcement notes',
+        'default' => 'Notes for everyone visiting...'
+    ],
+    'admin_shipping_address_placeholder' => [
+        'desc' => 'Placeholder for shipping address',
+        'default' => 'Enter your full shipping address details...'
+    ],
+    'admin_current_password_placeholder' => [
+        'desc' => 'Placeholder for current password',
+        'default' => '••••••••'
+    ],
+    'admin_new_password_placeholder' => [
+        'desc' => 'Placeholder for new password',
+        'default' => 'Minimum 12 characters'
+    ],
+    'admin_confirm_password_placeholder' => [
+        'desc' => 'Placeholder for confirm password',
+        'default' => 'Repeat new password'
+    ],
+    'admin_webhook_url_placeholder' => [
+        'desc' => 'Placeholder for webhook URL',
+        'default' => 'https://your-webhook-endpoint.com/webhook'
+    ],
+    'admin_webhook_secret_placeholder' => [
+        'desc' => 'Placeholder for webhook secret',
+        'default' => 'Leave empty to disable signature verification'
+    ],
+    'flash_settings_saved' => [
+        'desc' => 'Settings saved successfully',
+        'default' => 'Settings saved successfully.'
+    ],
+    'flash_theme_saved' => [
+        'desc' => 'Theme settings saved',
+        'default' => 'Theme settings saved successfully.'
+    ],
+    'flash_webhook_saved' => [
+        'desc' => 'Webhook settings saved',
+        'default' => 'Webhook settings saved successfully.'
+    ],
+    'flash_item_added' => [
+        'desc' => 'Item added to wishlist',
+        'default' => 'Item added to your wishlist successfully.'
+    ],
+    'flash_item_updated' => [
+        'desc' => 'Item updated',
+        'default' => 'Wishlist item updated successfully.'
+    ],
+    'flash_item_deleted' => [
+        'desc' => 'Item removed',
+        'default' => 'Wishlist item removed.'
+    ],
+    'flash_item_archived' => [
+        'desc' => 'Item archived',
+        'default' => 'Item archived.'
+    ],
+    'flash_item_unarchived' => [
+        'desc' => 'Item unarchived',
+        'default' => 'Item unarchived.'
+    ],
+    'flash_password_changed' => [
+        'desc' => 'Password changed',
+        'default' => 'Password changed successfully.'
+    ],
+    'flash_item_status_updated' => [
+        'desc' => 'Purchase status updated',
+        'default' => 'Item purchase status updated.'
+    ],
+    'flash_csrf_invalid' => [
+        'desc' => 'CSRF token invalid',
+        'default' => 'Invalid CSRF token. Please refresh the page and try again.'
+    ],
+    'flash_err_required_fields' => [
+        'desc' => 'Required fields missing',
+        'default' => 'Product title and link URL are required.'
+    ],
+    'flash_err_price_range' => [
+        'desc' => 'Price out of range',
+        'default' => 'Estimated price must be between 0 and 999,999.99.'
+    ],
+    'flash_err_password_fields' => [
+        'desc' => 'Password fields required',
+        'default' => 'All password fields are required.'
+    ],
+    'flash_err_password_mismatch' => [
+        'desc' => 'Passwords do not match',
+        'default' => 'New passwords do not match.'
+    ],
+    'flash_err_password_length' => [
+        'desc' => 'Password too short',
+        'default' => 'New password must be at least 12 characters long.'
+    ],
+    'flash_err_password_incorrect' => [
+        'desc' => 'Current password wrong',
+        'default' => 'Incorrect current password.'
+    ],
+    'flash_err_password_failed' => [
+        'desc' => 'Password change failed',
+        'default' => 'Failed to change password. Please try again.'
+    ],
+    'flash_err_invalid_color' => [
+        'desc' => 'Invalid CSS color',
+        'default' => 'Invalid CSS color value configured for theme.'
+    ],
+    'flash_webhook_unavailable' => [
+        'desc' => 'Webhook function unavailable',
+        'default' => 'Webhook function not available.'
+    ],
+    'flash_err_webhook_url' => [
+        'desc' => 'Invalid webhook URL',
+        'default' => 'Invalid or unsafe Webhook URL. It must use HTTPS and must not resolve to private, local, or loopback IP addresses.'
+    ],
+    'flash_webhook_failed_notice' => [
+        'desc' => 'Webhook send failed',
+        'default' => 'Webhook failed: '
     ]
 ];
 
@@ -931,7 +1009,7 @@ unset($_SESSION['flash_success'], $_SESSION['flash_error']);
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     // CSRF verification for all state-changing POST actions
     if (!verifyCsrfToken($_POST['csrf'] ?? '')) {
-        $_SESSION['flash_error'] = 'Invalid CSRF token. Please refresh the page and try again.';
+        $_SESSION['flash_error'] = __('flash_csrf_invalid', 'Invalid CSRF token. Please refresh the page and try again.');
         header("Location: admin.php");
         exit;
     }
@@ -956,7 +1034,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 mkdir($langDir, 0755, true);
             }
             $fileContent = "<?php\n// Dynamically generated translation file\nreturn " . var_export($trData, true) . ";\n";
-            if (file_put_contents($langDir . '/' . $langCode . '.php', $fileContent) !== false) {
+            $langFile = $langDir . '/' . $langCode . '.php';
+            if (file_put_contents($langFile, $fileContent) !== false) {
+                if (function_exists('opcache_invalidate')) {
+                    opcache_invalidate($langFile, true);
+                }
                 $_SESSION['flash_success'] = "Translations for '" . strtoupper($langCode) . "' updated successfully.";
             } else {
                 $_SESSION['flash_error'] = "Failed to write translation file. Please check folder permissions.";
@@ -1030,7 +1112,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         setSetting('general_notes', $_POST['general_notes'] ?? '');
         setSetting('currency', $_POST['currency'] ?? 'USD');
 
-        $_SESSION['flash_success'] = "Settings saved successfully.";
+        $_SESSION['flash_success'] = __('flash_settings_saved', 'Settings saved successfully.');
         header("Location: admin.php");
         exit;
     }
@@ -1049,7 +1131,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             validateCssColor($card) === false ||
             validateCssColor($text_primary) === false ||
             validateCssColor($text_secondary) === false) {
-            $_SESSION['flash_error'] = "Invalid CSS color value configured for theme.";
+            $_SESSION['flash_error'] = __('flash_err_invalid_color', 'Invalid CSS color value configured for theme.');
             header("Location: admin.php");
             exit;
         }
@@ -1061,7 +1143,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         setSetting('theme_text_primary', $text_primary);
         setSetting('theme_text_secondary', $text_secondary);
 
-        $_SESSION['flash_success'] = "Theme settings saved successfully.";
+        $_SESSION['flash_success'] = __('flash_theme_saved', 'Theme settings saved successfully.');
         header("Location: admin.php");
         exit;
     }
@@ -1096,8 +1178,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $response = [
                     'success' => $result['success'],
                     'message' => $result['success']
-                        ? "Test webhook sent successfully! HTTP " . ($result['http_code'] ?? '200')
-                        : "Test webhook failed: " . $result['message'],
+                        ? __('admin_webhook_test_success', 'Test webhook sent successfully!') . ' HTTP ' . ($result['http_code'] ?? '200')
+                        : __('admin_webhook_test_failed', 'Test webhook failed: ') . $result['message'],
                     'http_code' => $result['http_code'] ?? 0,
                     'response' => $result['response'] ?? ''
                 ];
@@ -1110,17 +1192,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             }
 
             if ($result['success']) {
-                $_SESSION['flash_success'] = "Test webhook sent successfully! HTTP " . ($result['http_code'] ?? '200');
+                $_SESSION['flash_success'] = __('admin_webhook_test_success', 'Test webhook sent successfully!') . ' HTTP ' . ($result['http_code'] ?? '200');
             } else {
-                $_SESSION['flash_error'] = "Test webhook failed: " . $result['message'];
+                $_SESSION['flash_error'] = __('admin_webhook_test_failed', 'Test webhook failed: ') . $result['message'];
             }
         } else {
             if ($isAjax || $acceptsJson) {
                 header('Content-Type: application/json');
-                echo json_encode(['success' => false, 'message' => 'Webhook function not available.']);
+                echo json_encode(['success' => false, 'message' => __('flash_webhook_unavailable', 'Webhook function not available.')]);
                 exit;
             }
-            $_SESSION['flash_error'] = "Webhook function not available.";
+            $_SESSION['flash_error'] = __('flash_webhook_unavailable', 'Webhook function not available.');
         }
         header("Location: admin.php#tab-webhooks");
         exit;
@@ -1135,13 +1217,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $estimated_price = $estimated_price !== '' ? (float) $estimated_price : null;
 
         if ($estimated_price !== null && ($estimated_price < 0 || $estimated_price > 999999.99)) {
-            $_SESSION['flash_error'] = "Estimated price must be between 0 and 999,999.99.";
+            $_SESSION['flash_error'] = __('flash_err_price_range', 'Estimated price must be between 0 and 999,999.99.');
             header("Location: admin.php");
             exit;
         }
 
         if (empty($title) || empty($url)) {
-            $_SESSION['flash_error'] = "Product title and link URL are required.";
+            $_SESSION['flash_error'] = __('flash_err_required_fields', 'Product title and link URL are required.');
         } else {
             // Find max sort order
             $maxOrder = (int) $pdo->query("SELECT MAX(`sort_order`) FROM `wishlist_items`")->fetchColumn();
@@ -1155,7 +1237,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $estimated_price,
                 $maxOrder + 1
             ]);
-            $_SESSION['flash_success'] = "Item added to your wishlist successfully.";
+            $_SESSION['flash_success'] = __('flash_item_added', 'Item added to your wishlist successfully.');
         }
         header("Location: admin.php");
         exit;
@@ -1171,7 +1253,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $estimated_price = $estimated_price !== '' ? (float) $estimated_price : null;
 
         if ($estimated_price !== null && ($estimated_price < 0 || $estimated_price > 999999.99)) {
-            $_SESSION['flash_error'] = "Estimated price must be between 0 and 999,999.99.";
+            $_SESSION['flash_error'] = __('flash_err_price_range', 'Estimated price must be between 0 and 999,999.99.');
             header("Location: admin.php");
             exit;
         }
@@ -1179,7 +1261,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $message_public = isset($_POST['message_public']) ? 1 : 0;
 
         if ($id <= 0 || empty($title) || empty($url)) {
-            $_SESSION['flash_error'] = "Invalid item configuration. Title and URL are required.";
+            $_SESSION['flash_error'] = __('flash_err_required_fields', 'Product title and link URL are required.');
         } else {
             $stmt = $pdo->prepare("UPDATE `wishlist_items` SET `title` = ?, `url` = ?, `image_url` = ?, `notes` = ?, `estimated_price` = ?, `buyer_message` = ?, `message_public` = ? WHERE `id` = ?");
             $stmt->execute([
@@ -1192,7 +1274,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $message_public,
                 $id
             ]);
-            $_SESSION['flash_success'] = "Wishlist item updated successfully.";
+            $_SESSION['flash_success'] = __('flash_item_updated', 'Wishlist item updated successfully.');
         }
         header("Location: admin.php");
         exit;
@@ -1204,11 +1286,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $confirmPassword = $_POST['confirm_password'] ?? '';
 
         if (empty($currentPassword) || empty($newPassword) || empty($confirmPassword)) {
-            $_SESSION['flash_error'] = "All password fields are required.";
+            $_SESSION['flash_error'] = __('flash_err_password_fields', 'All password fields are required.');
         } elseif ($newPassword !== $confirmPassword) {
-            $_SESSION['flash_error'] = "New passwords do not match.";
+            $_SESSION['flash_error'] = __('flash_err_password_mismatch', 'New passwords do not match.');
         } elseif (strlen($newPassword) < 12) {
-            $_SESSION['flash_error'] = "New password must be at least 12 characters long.";
+            $_SESSION['flash_error'] = __('flash_err_password_length', 'New password must be at least 12 characters long.');
         } else {
             $username = $_SESSION['admin_user'];
             try {
@@ -1220,12 +1302,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $newHash = password_hash($newPassword, PASSWORD_BCRYPT);
                     $updateStmt = $pdo->prepare("UPDATE `users` SET `password_hash` = ? WHERE `username` = ?");
                     $updateStmt->execute([$newHash, $username]);
-                    $_SESSION['flash_success'] = "Password changed successfully.";
+                    $_SESSION['flash_success'] = __('flash_password_changed', 'Password changed successfully.');
                 } else {
-                    $_SESSION['flash_error'] = "Incorrect current password.";
+                    $_SESSION['flash_error'] = __('flash_err_password_incorrect', 'Incorrect current password.');
                 }
             } catch (PDOException $e) {
-                $_SESSION['flash_error'] = "Failed to change password. Please try again.";
+                $_SESSION['flash_error'] = __('flash_err_password_failed', 'Failed to change password. Please try again.');
             }
         }
         header("Location: admin.php");
@@ -1236,7 +1318,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $webhookUrl = trim($_POST['webhook_url'] ?? '');
         
         if (!empty($webhookUrl) && !isSafeUrl($webhookUrl, false)) {
-            $_SESSION['flash_error'] = "Invalid or unsafe Webhook URL. It must use HTTPS and must not resolve to private, local, or loopback IP addresses.";
+            $_SESSION['flash_error'] = __('flash_err_webhook_url', 'Invalid or unsafe Webhook URL. It must use HTTPS and must not resolve to private, local, or loopback IP addresses.');
             header("Location: admin.php");
             exit;
         }
@@ -1251,7 +1333,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         setSetting('webhook_enabled', isset($_POST['webhook_enabled']) ? '1' : '0');
         setSetting('webhook_verify_ssl', isset($_POST['webhook_verify_ssl']) ? '1' : '0');
 
-        $_SESSION['flash_success'] = "Webhook settings saved successfully.";
+        $_SESSION['flash_success'] = __('flash_webhook_saved', 'Webhook settings saved successfully.');
         header("Location: admin.php");
         exit;
     }
@@ -1261,7 +1343,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         if ($id > 0) {
             $stmt = $pdo->prepare("DELETE FROM `wishlist_items` WHERE `id` = ?");
             $stmt->execute([$id]);
-            $_SESSION['flash_success'] = "Wishlist item removed.";
+            $_SESSION['flash_success'] = __('flash_item_deleted', 'Wishlist item removed.');
         }
         header("Location: admin.php");
         exit;
@@ -1306,11 +1388,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                         ];
                         $whResult = sendWebhook($itemData, $buyerData);
                         if (!$whResult['success']) {
-                            $_SESSION['flash_warning'] = "Webhook failed: " . $whResult['message'];
+                            $_SESSION['flash_warning'] = __('flash_webhook_failed_notice', 'Webhook failed: ') . $whResult['message'];
                         }
                     }
                 }
-                $_SESSION['flash_success'] = "Item purchase status updated.";
+                $_SESSION['flash_success'] = __('flash_item_status_updated', 'Item purchase status updated.');
             }
         }
         header("Location: admin.php");
@@ -1322,7 +1404,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         if ($id > 0) {
             $stmt = $pdo->prepare("UPDATE `wishlist_items` SET `is_archived` = 1 WHERE `id` = ?");
             $stmt->execute([$id]);
-            $_SESSION['flash_success'] = "Item archived.";
+            $_SESSION['flash_success'] = __('flash_item_archived', 'Item archived.');
         }
         header("Location: admin.php");
         exit;
@@ -1333,7 +1415,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         if ($id > 0) {
             $stmt = $pdo->prepare("UPDATE `wishlist_items` SET `is_archived` = 0 WHERE `id` = ?");
             $stmt->execute([$id]);
-            $_SESSION['flash_success'] = "Item unarchived.";
+            $_SESSION['flash_success'] = __('flash_item_unarchived', 'Item unarchived.');
         }
         header("Location: admin.php");
         exit;
@@ -1361,22 +1443,6 @@ $editTranslations = [];
 $editTrFile = __DIR__ . '/lang/' . $editLang . '.php';
 if (file_exists($editTrFile)) {
     $editTranslations = include $editTrFile;
-} else if ($editLang === 'tr') {
-    // Backward compatibility: fetch from DB and save it to file
-    try {
-        $stmt = $pdo->prepare("SELECT `translation_key`, `translation_value` FROM `translations` WHERE `lang` = 'tr'");
-        $stmt->execute();
-        $editTranslations = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
-        if ($editTranslations) {
-            $langDir = __DIR__ . '/lang';
-            if (!is_dir($langDir)) {
-                @mkdir($langDir, 0755, true);
-            }
-            @file_put_contents($editTrFile, "<?php\nreturn " . var_export($editTranslations, true) . ";\n");
-        }
-    } catch (PDOException $e) {
-        // translations table might not exist yet
-    }
 }
 ?>
 <!DOCTYPE html>
@@ -1503,7 +1569,7 @@ if (file_exists($editTrFile)) {
                         <div class="form-group">
                             <label for="scrape-url"><?= h(__('admin_paste_link', 'Paste Product Link')) ?></label>
                             <div class="url-input-container">
-                                <input type="url" id="scrape-url" placeholder="https://example.com/product-page"
+                                <input type="url" id="scrape-url" placeholder="<?= h(__('admin_url_placeholder', 'https://...')) ?>"
                                     autocomplete="off">
                                 <button type="button" id="btn-scrape"
                                     class="btn btn-primary"><?= h(__('admin_fetch_details', 'Fetch Details')) ?></button>
@@ -1521,18 +1587,18 @@ if (file_exists($editTrFile)) {
 
                             <div class="form-group">
                                 <label for="add-title"><?= h(__('admin_product_title', 'Product Title')) ?></label>
-                                <input type="text" id="add-title" name="title" placeholder="Enter title" required>
+                                <input type="text" id="add-title" name="title" placeholder="<?= h(__('admin_title_placeholder', 'Enter title')) ?>" required>
                             </div>
 
                             <div class="form-group">
                                 <label for="add-url"><?= h(__('admin_product_link', 'Product Link URL')) ?></label>
-                                <input type="url" id="add-url" name="url" placeholder="https://..." required>
+                                <input type="url" id="add-url" name="url" placeholder="<?= h(__('admin_url_placeholder', 'https://...')) ?>" required>
                             </div>
 
                             <div class="form-group">
                                 <label for="add-image"><?= h(__('admin_image_url', 'Image URL')) ?></label>
                                 <input type="url" id="add-image" name="image_url"
-                                    placeholder="https://... (or leave empty)">
+                                    placeholder="<?= h(__('admin_image_url_placeholder', 'https://... (or leave empty)')) ?>">
                                 <div class="preview-pane mt-2" id="add-image-preview-container">
                                     <span
                                         class="text-xs text-muted block mb-1"><?= h(__('admin_image_preview', 'Image Preview:')) ?></span>
@@ -1544,7 +1610,7 @@ if (file_exists($editTrFile)) {
                                 <label
                                     for="add-notes"><?= h(__('admin_notes_label', 'Notes (Size, color, preferences)')) ?></label>
                                 <textarea id="add-notes" name="notes" rows="2"
-                                    placeholder="e.g. Size M, color black"></textarea>
+                                    placeholder="<?= h(__('admin_notes_placeholder', 'e.g. Size M, color black')) ?>"></textarea>
                             </div>
 
                             <div class="form-group">
@@ -1704,14 +1770,14 @@ if (file_exists($editTrFile)) {
                             <label
                                 for="general-notes"><?= h(__('admin_announcement_notes', 'General Announcement/Notes')) ?></label>
                             <textarea id="general-notes" name="general_notes" rows="3"
-                                placeholder="Notes for everyone visiting..."><?= h($generalNotes) ?></textarea>
+                                placeholder="<?= h(__('admin_announcement_notes_placeholder', 'Notes for everyone visiting...')) ?>"><?= h($generalNotes) ?></textarea>
                         </div>
 
                         <div class="form-group">
                             <label
                                 for="shipping-address"><?= h(__('admin_shipping_address_area', 'Shipping Address Area')) ?></label>
                             <textarea id="shipping-address" name="shipping_address" rows="3"
-                                placeholder="Enter your full shipping address details..."><?= h($shippingAddress) ?></textarea>
+                                placeholder="<?= h(__('admin_shipping_address_placeholder', 'Enter your full shipping address details...')) ?>"><?= h($shippingAddress) ?></textarea>
                         </div>
 
                         <div class="checkbox-group">
@@ -1838,21 +1904,21 @@ if (file_exists($editTrFile)) {
                         <div class="form-group">
                             <label
                                 for="current-password"><?= h(__('admin_current_password', 'Current Password')) ?></label>
-                            <input type="password" id="current-password" name="current_password" placeholder="••••••••"
+                            <input type="password" id="current-password" name="current_password" placeholder="<?= h(__('admin_current_password_placeholder', '••••••••')) ?>"
                                 required>
                         </div>
 
                         <div class="form-group">
                             <label for="new-password"><?= h(__('admin_new_password', 'New Password')) ?></label>
                             <input type="password" id="new-password" name="new_password"
-                                placeholder="Minimum 12 characters" required>
+                                placeholder="<?= h(__('admin_new_password_placeholder', 'Minimum 12 characters')) ?>" required>
                         </div>
 
                         <div class="form-group">
                             <label
                                 for="confirm-password"><?= h(__('admin_confirm_password', 'Confirm New Password')) ?></label>
                             <input type="password" id="confirm-password" name="confirm_password"
-                                placeholder="Repeat new password" required>
+                                placeholder="<?= h(__('admin_confirm_password_placeholder', 'Repeat new password')) ?>" required>
                         </div>
 
                         <button type="submit"
@@ -1978,7 +2044,7 @@ if (file_exists($editTrFile)) {
                                             <div style="display: flex; flex-direction: column;">
                                                 <textarea name="translations[<?= h($key) ?>]"
                                                     class="translation-textarea <?= trim($currentVal) === '' ? 'empty-warning' : '' ?>"
-                                                    placeholder="Enter <?= h(strtoupper($editLang)) ?> translation..."><?= h($currentVal) ?></textarea>
+                                                    placeholder="<?= h(sprintf(__('admin_translation_placeholder', 'Enter %s translation...'), strtoupper($editLang))) ?>"><?= h($currentVal) ?></textarea>
                                                 <span class="empty-fallback-badge"
                                                     style="display: <?= trim($currentVal) === '' ? 'inline-block' : 'none' ?>;">
                                                     ⚠️ Empty: Falls back to "<?= h($meta['default']) ?>"
@@ -2014,7 +2080,7 @@ if (file_exists($editTrFile)) {
                 <div class="form-group">
                     <label for="webhook-url"><?= h(__('admin_webhook_url_label', 'Webhook URL')) ?></label>
                     <input type="url" id="webhook-url" name="webhook_url"
-                        placeholder="https://your-webhook-endpoint.com/webhook"
+                        placeholder="<?= h(__('admin_webhook_url_placeholder', 'https://your-webhook-endpoint.com/webhook')) ?>"
                         value="<?= h(getSetting('webhook_url', '')) ?>" required>
                     <span
                         class="text-xs text-muted"><?= h(__('admin_webhook_url_help', 'The URL that will receive the POST request when an item is marked as bought. This is never shown to the public.')) ?></span>
@@ -2024,7 +2090,7 @@ if (file_exists($editTrFile)) {
                     <label
                         for="webhook-query-params"><?= h(__('admin_webhook_query_params_label', 'Query Parameters (Optional)')) ?></label>
                     <input type="text" id="webhook-query-params" name="webhook_query_params"
-                        placeholder="key1=value1&key2=value2" value="<?= h(getSetting('webhook_query_params', '')) ?>">
+                        placeholder="<?= h(__('admin_webhook_query_params_placeholder', 'key1=value1&key2=value2')) ?>" value="<?= h(getSetting('webhook_query_params', '')) ?>">
                     <span
                         class="text-xs text-muted"><?= h(__('admin_webhook_query_params_help', 'Additional query parameters to append to the webhook URL. Format: key1=value1&key2=value2')) ?></span>
                 </div>
@@ -2033,7 +2099,7 @@ if (file_exists($editTrFile)) {
                     <label
                         for="webhook-secret"><?= h(__('admin_webhook_secret_label', 'Webhook Secret (Optional)')) ?></label>
                     <input type="text" id="webhook-secret" name="webhook_secret"
-                        placeholder="Leave empty to disable signature verification"
+                        placeholder="<?= h(__('admin_webhook_secret_placeholder', 'Leave empty to disable signature verification')) ?>"
                         value="<?= h(getSetting('webhook_secret', '')) ?>">
                     <span
                         class="text-xs text-muted"><?= h(__('admin_webhook_secret_help', 'If provided, a X-Webhook-Signature header will be sent with HMAC-SHA256 signature of the payload. Use this to verify the request came from your wishlist.')) ?></span>
@@ -2134,17 +2200,17 @@ if (file_exists($editTrFile)) {
 
                 <div class="form-group">
                     <label for="edit-title"><?= h(__('admin_product_title', 'Product Title')) ?></label>
-                    <input type="text" id="edit-title" name="title" required>
+                    <input type="text" id="edit-title" name="title" placeholder="<?= h(__('admin_title_placeholder', 'Enter title')) ?>" required>
                 </div>
 
                 <div class="form-group">
                     <label for="edit-url"><?= h(__('admin_product_link', 'Product Link URL')) ?></label>
-                    <input type="url" id="edit-url" name="url" required>
+                    <input type="url" id="edit-url" name="url" placeholder="<?= h(__('admin_url_placeholder', 'https://...')) ?>" required>
                 </div>
 
                 <div class="form-group">
                     <label for="edit-image"><?= h(__('admin_image_url', 'Image URL')) ?></label>
-                    <input type="url" id="edit-image" name="image_url">
+                    <input type="url" id="edit-image" name="image_url" placeholder="<?= h(__('admin_image_url_placeholder', 'https://... (or leave empty)')) ?>">
                     <div class="preview-pane mt-2" id="edit-image-preview-container" style="display: block;">
                         <span
                             class="text-xs text-muted block mb-1"><?= h(__('admin_image_preview', 'Image Preview:')) ?></span>
@@ -2155,7 +2221,7 @@ if (file_exists($editTrFile)) {
                 <div class="form-group">
                     <label
                         for="edit-notes"><?= h(__('admin_notes_label', 'Notes (Size, color, preferences)')) ?></label>
-                    <textarea id="edit-notes" name="notes" rows="3"></textarea>
+                    <textarea id="edit-notes" name="notes" rows="3" placeholder="<?= h(__('admin_notes_placeholder', 'e.g. Size M, color black')) ?>"></textarea>
                 </div>
 
                 <div class="form-group">
@@ -2184,6 +2250,13 @@ if (file_exists($editTrFile)) {
         </div>
     </div>
 
+    <script>
+        window.translations = {
+            admin_webhook_sending: <?= json_encode(__('admin_webhook_sending', 'Sending...')) ?>,
+            admin_webhook_test_btn: <?= json_encode(__('admin_webhook_test_btn', '🧪 Send Test Webhook')) ?>,
+            admin_webhook_test_error: <?= json_encode(__('admin_webhook_test_error', 'Error sending test webhook: ')) ?>
+        };
+    </script>
     <script src="assets/js/admin.js?v=<?= filemtime(__DIR__ . '/assets/js/admin.js') ?>"></script>
 </body>
 

@@ -134,35 +134,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $schemaSql = file_get_contents($schemaFile);
             $pdo->exec($schemaSql);
 
-            // Auto-add missing columns to wishlist_items (schema forward-compat)
-            $columns = [
-                'buyer_message' => 'TEXT DEFAULT NULL',
-                'message_public' => 'TINYINT(1) DEFAULT 0',
-                'is_archived' => 'TINYINT(1) DEFAULT 0',
-            ];
-            foreach ($columns as $col => $def) {
-                try {
-                    $pdo->query("SELECT `$col` FROM `wishlist_items` LIMIT 1");
-                } catch (PDOException $e) {
-                    if (strpos($e->getMessage(), 'Unknown column') !== false) {
-                        $pdo->exec("ALTER TABLE `wishlist_items` ADD COLUMN `$col` $def");
-                    }
-                }
-            }
-            // Auto-create rate_limits table if missing
-            try {
-                $pdo->query("SELECT 1 FROM `rate_limits` LIMIT 1");
-            } catch (PDOException $e) {
-                if (strpos($e->getMessage(), 'doesn\'t exist') !== false || strpos($e->getMessage(), 'Table') !== false) {
-                    $pdo->exec("CREATE TABLE IF NOT EXISTS `rate_limits` (
-                        `id` INT AUTO_INCREMENT PRIMARY KEY,
-                        `key` VARCHAR(100) NOT NULL,
-                        `created_at` INT NOT NULL,
-                        INDEX `idx_key_created` (`key`, `created_at`)
-                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
-                }
-            }
-
             // 4. Register Admin User
             $hashedPass = password_hash($admin_pass, PASSWORD_BCRYPT);
             // Check if admin user already exists, if not insert
@@ -188,6 +159,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // 6. Try to write config.php
             if (@file_put_contents($configFile, $configTemplate) !== false) {
+                $generatedConfigCode = '';
                 $success = true;
                 @chmod($configFile, 0600) || @chmod($configFile, 0640);
                 if (file_exists($schemaFile)) {

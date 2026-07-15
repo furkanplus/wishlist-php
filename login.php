@@ -28,70 +28,6 @@ require_once __DIR__ . '/config.php';
 // Set security headers
 setSecurityHeaders();
 
-if (!function_exists('getAvailableLanguages')) {
-    function getAvailableLanguages() {
-        $langs = ['en'];
-        $langDir = __DIR__ . '/lang';
-        if (is_dir($langDir)) {
-            $files = glob($langDir . '/*.php');
-            if ($files) {
-                foreach ($files as $file) {
-                    $code = basename($file, '.php');
-                    if ($code !== 'en' && preg_match('/^[a-z]{2,3}(_[a-z]{2,4})?$/i', $code)) {
-                        $langs[] = strtolower($code);
-                    }
-                }
-            }
-        }
-        return array_unique($langs);
-    }
-}
-
-if (!function_exists('__')) {
-    function __($key, $default = '') {
-        static $translations = null;
-        
-        $lang = $_SESSION['lang'] ?? $_COOKIE['lang'] ?? 'en';
-        if ($lang === 'en') {
-            return $default;
-        }
-        
-        if ($translations === null) {
-            $translations = [];
-            $file = __DIR__ . '/lang/' . $lang . '.php';
-            if (file_exists($file)) {
-                $translations = include $file;
-            } else {
-                // Backward compatibility / auto-migration from database
-                global $pdo;
-                if (isset($pdo)) {
-                    try {
-                        $stmt = $pdo->prepare('SELECT `translation_key`, `translation_value` FROM `translations` WHERE `lang` = ?');
-                        $stmt->execute([$lang]);
-                        $rows = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
-                        if ($rows) {
-                            $translations = $rows;
-                            // Attempt to cache translations to static PHP file
-                            $langDir = __DIR__ . '/lang';
-                            if (!is_dir($langDir)) {
-                                @mkdir($langDir, 0755, true);
-                            }
-                            @file_put_contents($file, '<?php' . PHP_EOL . 'return ' . var_export($translations, true) . ';');
-                        }
-                    } catch (PDOException $e) {
-                        // translations table doesn't exist
-                    }
-                }
-            }
-        }
-        
-        if (isset($translations[$key]) && trim($translations[$key]) !== '') {
-            return $translations[$key];
-        }
-        return $default;
-    }
-}
-
 $currentLang = $_SESSION['lang'] ?? $_COOKIE['lang'] ?? 'en';
 
 
@@ -113,27 +49,10 @@ try {
 
 // Handle Form Submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Rate limiting: max 5 attempts per 15 minutes per IP
     $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-    $rateLimitKey = "login:$ip";
-    $now = time();
-    $window = 15 * 60; // 15 minutes
-    $maxAttempts = 5;
-    
-    // Clean old entries
-    $pdo->exec("DELETE FROM `rate_limits` WHERE `created_at` < " . ($now - $window));
-    
-    // Count recent attempts
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM `rate_limits` WHERE `key` = ? AND `created_at` >= ?");
-    $stmt->execute([$rateLimitKey, $now - $window]);
-    $attempts = (int)$stmt->fetchColumn();
-    
-    if ($attempts >= $maxAttempts) {
+    if (!checkRateLimit("login:$ip", 5, 900)) {
         $error = 'Too many login attempts. Please try again in 15 minutes.';
     } else {
-        // Record this attempt
-        $stmt = $pdo->prepare("INSERT INTO `rate_limits` (`key`, `created_at`) VALUES (?, ?)");
-        $stmt->execute([$rateLimitKey, $now]);
         
         $username = trim($_POST['username'] ?? '');
         $password = $_POST['password'] ?? '';

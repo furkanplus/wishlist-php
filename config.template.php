@@ -233,6 +233,41 @@ function getCurrencyList() {
     ];
 }
 
+// ponytail: single source of truth, shared across all pages
+if (!function_exists('__')) {
+    function __($key, $default = '') {
+        static $translations = null;
+        $lang = $_SESSION['lang'] ?? $_COOKIE['lang'] ?? 'en';
+        if ($lang === 'en') return $default;
+        if ($translations === null) {
+            $translations = [];
+            $file = __DIR__ . '/lang/' . $lang . '.php';
+            if (file_exists($file)) {
+                $translations = include $file;
+            }
+        }
+        if (isset($translations[$key]) && trim($translations[$key]) !== '') {
+            return $translations[$key];
+        }
+        return $default;
+    }
+}
+if (!function_exists('getAvailableLanguages')) {
+    function getAvailableLanguages() {
+        $langs = ['en'];
+        $files = glob(__DIR__ . '/lang/*.php');
+        if ($files) {
+            foreach ($files as $file) {
+                $code = basename($file, '.php');
+                if ($code !== 'en' && preg_match('/^[a-z]{2,3}(_[a-z]{2,4})?$/i', $code)) {
+                    $langs[] = strtolower($code);
+                }
+            }
+        }
+        return array_unique($langs);
+    }
+}
+
 function hexToRgba($hex, $opacity = 1) {
     $hex = str_replace('#', '', $hex);
     if (strlen($hex) == 3) {
