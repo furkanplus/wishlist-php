@@ -2,6 +2,11 @@
 // logout.php
 require_once __DIR__ . '/config.php';
 
+if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+    header('Location: index.php');
+    exit;
+}
+
 $_SESSION = [];
 
 if (ini_get("session.use_cookies")) {

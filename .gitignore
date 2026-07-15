@@ -19,3 +19,4 @@ Thumbs.db
 *.agent
 
 AGENTS.md
+/sast

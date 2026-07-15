@@ -526,9 +526,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         'Accept': 'application/json',
                         'X-Requested-With': 'XMLHttpRequest'
                     },
-                    body: new URLSearchParams({
-                        action: 'test_webhook'
-                    })
+                body: new URLSearchParams({
+                    action: 'test_webhook',
+                    csrf: testWebhookBtn.dataset.csrf || ''
+                })
                 });
 
                 const contentType = response.headers.get('content-type');
@@ -553,6 +554,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     webhookTestResult.textContent = '✅ ' + (result.message || 'Test webhook sent successfully! Check your webhook endpoint.');
                 } else {
                     webhookTestResult.className = 'mt-3 flash-message flash-danger';
+                    webhookTestResult.style.whiteSpace = 'pre-wrap';
                     let errorMsg = '❌ ' + (result.message || 'Test webhook failed');
                     // Include n8n 422 response body if available
                     if (result.response) {
@@ -562,12 +564,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     // Include debug info (request URL, headers, body) if available
                     if (result.debug) {
-                        errorMsg += '\n\nDebug - Request sent:\n';
-                        errorMsg += 'URL: ' + (result.debug.url || 'N/A') + '\n';
-                        errorMsg += 'Method: ' + (result.debug.method || 'N/A') + '\n';
-                        errorMsg += 'Content-Type: ' + (result.debug.content_type || 'N/A') + '\n';
+                        errorMsg += '\n\n--- Debug: Request Sent ---\n';
+                        errorMsg += 'URL: ' + (result.debug.request_url || 'N/A') + '\n';
+                        errorMsg += 'Method: ' + (result.debug.request_method || 'N/A') + '\n';
+                        errorMsg += 'Headers:\n' + ((result.debug.request_headers || []).join('\n')) + '\n';
                         errorMsg += 'Body Template Used: ' + (result.debug.body_template_used ? 'Yes' : 'No') + '\n';
-                        errorMsg += 'Body:\n' + JSON.stringify(result.debug.body, null, 2);
+                        errorMsg += 'Body:\n' + (result.debug.request_body || 'N/A');
                     }
                     webhookTestResult.textContent = errorMsg;
                 }

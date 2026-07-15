@@ -392,6 +392,14 @@ $translationKeys = [
         'desc' => 'Card action: Mark as bought manually',
         'default' => '✅ Mark Bought'
     ],
+    'admin_unmark_confirm' => [
+        'desc' => 'Confirmation for unmarking bought item',
+        'default' => 'Unmark this item as bought?'
+    ],
+    'admin_mark_bought_confirm' => [
+        'desc' => 'Confirmation for marking item as bought by admin',
+        'default' => 'Mark this item as bought by admin?'
+    ],
     'admin_delete_confirm' => [
         'desc' => 'JavaScript confirmation question before delete',
         'default' => 'Remove this item from your wishlist?'
@@ -740,6 +748,78 @@ $translationKeys = [
         'desc' => 'Button to save webhook settings',
         'default' => 'Save Webhook Settings'
     ],
+    'admin_webhook_title' => [
+        'desc' => 'Card header for webhook config',
+        'default' => '🔗 Webhook Configuration'
+    ],
+    'admin_webhook_url_label' => [
+        'desc' => 'Label for webhook URL input',
+        'default' => 'Webhook URL'
+    ],
+    'admin_webhook_secret_label' => [
+        'desc' => 'Label for webhook secret input',
+        'default' => 'Webhook Secret (Optional)'
+    ],
+    'admin_webhook_secret_help' => [
+        'desc' => 'Help text for webhook secret',
+        'default' => 'If provided, a X-Webhook-Signature header will be sent with HMAC-SHA256 signature of the payload. Use this to verify the request came from your wishlist.'
+    ],
+    'admin_webhook_method_label' => [
+        'desc' => 'Label for HTTP method select',
+        'default' => 'HTTP Method'
+    ],
+    'admin_webhook_method_post' => [
+        'desc' => 'Radio label for POST method',
+        'default' => 'POST (Recommended)'
+    ],
+    'admin_webhook_method_put' => [
+        'desc' => 'Radio label for PUT method',
+        'default' => 'PUT'
+    ],
+    'admin_webhook_method_patch' => [
+        'desc' => 'Radio label for PATCH method',
+        'default' => 'PATCH'
+    ],
+    'admin_webhook_content_type_label' => [
+        'desc' => 'Label for Content-Type select',
+        'default' => 'Content-Type'
+    ],
+    'admin_webhook_timeout_label' => [
+        'desc' => 'Label for timeout input',
+        'default' => 'Timeout (seconds)'
+    ],
+    'admin_webhook_timeout_help' => [
+        'desc' => 'Help text for timeout',
+        'default' => 'Maximum time to wait for webhook response. Default: 10 seconds.'
+    ],
+    'admin_webhook_enabled_label' => [
+        'desc' => 'Label for enabled checkbox',
+        'default' => 'Enable webhook notifications'
+    ],
+    'admin_webhook_verify_ssl_label' => [
+        'desc' => 'Label for verify SSL checkbox',
+        'default' => 'Verify SSL certificate'
+    ],
+    'admin_webhook_verify_ssl_help' => [
+        'desc' => 'Help text for verify SSL',
+        'default' => 'Disable only for testing with self-signed certificates. Keep enabled for production.'
+    ],
+    'admin_webhook_test_title' => [
+        'desc' => 'Header for test webhook section',
+        'default' => 'Test Webhook'
+    ],
+    'admin_webhook_test_desc' => [
+        'desc' => 'Description for test webhook',
+        'default' => 'Send a test payload to verify your webhook configuration.'
+    ],
+    'admin_webhook_test_btn' => [
+        'desc' => 'Button to test webhook',
+        'default' => 'Send Test Webhook'
+    ],
+    'admin_webhook_save_btn' => [
+        'desc' => 'Button to save webhook settings',
+        'default' => 'Save Webhook Settings'
+    ],
     'admin_webhook_url_help' => [
         'desc' => 'Help text for webhook URL',
         'default' => 'This URL is never exposed to the public. Only the server will send requests to this endpoint.'
@@ -767,6 +847,10 @@ $translationKeys = [
     'admin_webhook_body_help' => [
         'desc' => 'Help text for body template',
         'default' => 'Available placeholders: {{item_id}}, {{item_title}}, {{item_url}}, {{item_image}}, {{buyer_name}}, {{buyer_proof}}, {{buyer_message}}, {{message_public}}, {{bought_at}}, {{estimated_price}}, {{notes}}'
+    ],
+    'err_rate_limited' => [
+        'desc' => 'Error when rate limited',
+        'default' => 'Too many requests. Please try again later.'
     ]
 ];
 
@@ -1212,6 +1296,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                             'notes' => $item['notes'] ?? '',
                         ];
                         $buyerData = [
+                            'event_id' => bin2hex(random_bytes(16)),
                             'buyer_name' => 'Admin',
                             'buyer_proof' => 'Manually marked by admin',
                             'buyer_message' => '',
@@ -1219,7 +1304,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                             'bought_at' => date('Y-m-d H:i:s'),
                             'source' => 'admin',
                         ];
-                        sendWebhook($itemData, $buyerData);
+                        $whResult = sendWebhook($itemData, $buyerData);
+                        if (!$whResult['success']) {
+                            $_SESSION['flash_warning'] = "Webhook failed: " . $whResult['message'];
+                        }
                     }
                 }
                 $_SESSION['flash_success'] = "Item purchase status updated.";
@@ -1258,6 +1346,7 @@ $shippingAddressVisible = getSetting('shipping_address_visible', '1') === '1';
 $shippingAddressExpiresAt = getSetting('shipping_address_expires_at', '');
 $generalNotes = getSetting('general_notes', '');
 $currency = getSetting('currency', 'USD');
+$currencySymbol = getCurrencySymbol($currency);
 $currencies = getCurrencyList();
 
 // Fetch all wishlist items
@@ -1347,7 +1436,7 @@ if (file_exists($editTrFile)) {
         <!-- Navigation -->
         <div class="nav-bar admin-nav">
             <span
-                class="text-sm text-muted"><?= sprintf(__('admin_logged_in_as', 'Logged in as: <strong>%s</strong>'), h($_SESSION['admin_user'])) ?></span>
+                class="text-sm text-muted"><?= h(__('admin_logged_in_as', 'Logged in as:')) ?> <strong><?= h($_SESSION['admin_user']) ?></strong></span>
             <div class="flex gap-2" style="align-items: center;">
                 <form method="GET" action="" style="display: inline-block; margin: 0;">
                     <div class="lang-select-wrapper">
@@ -1362,7 +1451,10 @@ if (file_exists($editTrFile)) {
                 </form>
                 <a href="index.php"
                     class="btn btn-secondary btn-sm"><?= h(__('admin_view_public', '👁️ View Public List')) ?></a>
-                <a href="logout.php" class="btn btn-danger btn-sm"><?= h(__('admin_sign_out', '🚪 Sign Out')) ?></a>
+                <form method="POST" action="logout.php" style="display:inline;margin:0">
+                    <input type="hidden" name="csrf_token" value="<?= h(generateCsrfToken()) ?>">
+                    <button type="submit" class="btn btn-danger btn-sm"><?= h(__('admin_sign_out', '🚪 Sign Out')) ?></button>
+                </form>
             </div>
         </div>
 
@@ -1526,7 +1618,7 @@ if (file_exists($editTrFile)) {
                                         <?php endif; ?>
 
                                         <?php if ($item['estimated_price'] !== null): ?>
-                                            <div class="item-price">~ $<?= number_format((float) $item['estimated_price'], 2) ?>
+                                            <div class="item-price">~ <?= number_format((float) $item['estimated_price'], 2) ?><?= h($currencySymbol) ?>
                                             </div>
                                         <?php endif; ?>
 
@@ -1773,7 +1865,8 @@ if (file_exists($editTrFile)) {
 
         <!-- Tab Content: Translations -->
         <div class="tab-content" id="tab-translations">
-            <div class="add-item-box">
+            <div class="admin-grid">
+            <div class="add-item-box" style="grid-column: 1 / -1;">
                 <h3 class="mb-4">🌐 <?= h(__('admin_translation_management', 'Translation Management')) ?></h3>
                 <p class="text-xs text-muted mb-4">💡
                     <?= h(__('admin_edit_translations_desc', 'Edit the translations displayed to users. Filter translation keys or values in real-time below.')) ?>
@@ -1901,12 +1994,14 @@ if (file_exists($editTrFile)) {
                         class="btn btn-primary btn-block mt-4"><?= h(__('admin_save_translations', 'Save Translations')) ?></button>
                 </form>
             </div>
+            </div>
         </div>
-    </div>
+        </div>
 
-    <!-- Tab Content: Webhooks -->
-    <div class="tab-content" id="tab-webhooks">
-        <div class="add-item-box">
+        <!-- Tab Content: Webhooks -->
+        <div class="tab-content" id="tab-webhooks">
+            <div class="admin-grid">
+            <div class="add-item-box" style="grid-column: 1 / -1;">
             <h3 class="mb-4"><?= h(__('admin_webhook_title', '🔗 Webhook Configuration')) ?></h3>
             <p class="text-xs text-muted mb-4">
                 <?= h(__('admin_webhook_desc', 'Configure a webhook URL to receive notifications when an item is marked as bought. The webhook will receive a POST request with the purchase details.')) ?>
@@ -2014,12 +2109,14 @@ if (file_exists($editTrFile)) {
                     <?= h(__('admin_webhook_test_desc', 'Send a test payload to verify your webhook configuration.')) ?>
                 </p>
                 <button type="button" id="btn-test-webhook"
-                    class="btn btn-secondary"><?= h(__('admin_webhook_test_btn', 'Send Test Webhook')) ?></button>
+                    class="btn btn-secondary"
+                    data-csrf="<?= h($_SESSION['csrf_token']) ?>"><?= h(__('admin_webhook_test_btn', 'Send Test Webhook')) ?></button>
                 <div id="webhook-test-result" class="mt-3" style="display: none;"></div>
 
                 <button type="submit"
                     class="btn btn-primary btn-block mt-4"><?= h(__('admin_webhook_save_btn', 'Save Webhook Settings')) ?></button>
             </form>
+        </div>
         </div>
     </div>
 

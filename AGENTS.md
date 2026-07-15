@@ -37,6 +37,7 @@ Never hardcode user-facing strings.
 * assets/css/style.css - The core style rules, featuring custom amber warning classes (.flash-warning, .empty-warning, .empty-fallback-badge).
 * assets/js/app.js - Public scripts for purchase validation/verification workflows.
 * assets/js/admin.js - Control panel scripts for scraping, drag-and-drop sorting, and live warning highlighting in translations.
+* config.template.php - Template for install.php: full config with {{DB_HOST}} etc. placeholders for auto-generation.
 * install.php - Web installer: creates DB schema, admin user, generates config.php with auto-migration.
 * deploy.sh - Deployment script; reads FTP credentials from .env, syncs via lftp.
 
@@ -119,4 +120,29 @@ Further security hardening and logic patching across the application:
 - **api/fetch-metadata.php**: Added host-level and redirect-level SSRF checks using `isSafeUrl()`. Replaced cURL followlocation with a manual redirect-checking loop that evaluates each redirected location.
 - **api/update-order.php**: Implemented database-level exclusive row locking (`FOR UPDATE`) on the transaction to prevent sorting race conditions.
 - **admin.php**: Validated `estimated_price` (between 0 and 999999.99), `webhook_url` (HTTPS-only, SSRF-safe), and theme colors on POST action handles. Triggers `sendWebhook()` with `source => admin` discriminator when admin manually marks an item as bought. Correctly clears `buyer_message` and `message_public` columns when unmarking purchases.
+
+### SAST Findings Fixes (July 2026)
+Applied fixes from SAST security audit findings:
+- **index.php**: Fixed 2 XSS vectors — wrapped `sprintf()` format string with `h()` escaping for `available_for` and `modal_instructions` translations (`sprintf(h(__('key')), ...)` pattern). Previously, admin-controlled translation values could inject arbitrary HTML/JS into `sprintf()` output.
+- **admin.php**: Fixed XSS in `admin_logged_in_as` — separated translation text from HTML markup (`<strong>` moved to template, `%s` removed from translation).
+- **api/mark-bought.php**: Added rate limiting via `checkRateLimit("mark-bought:{ip}:{item_id}", 10, 60)` to prevent abuse/enumeration. Added `event_id` (random hex) to webhook payload for idempotency.
+- **admin.php**: Added `event_id` to admin-triggered webhook payload. Added `err_rate_limited` translation key.
+- **api/update-order.php**: Added `sort($sanitizedIds)` before `FOR UPDATE` query for explicit lock-order guarantee.
+- **logout.php**: Changed to POST-only with CSRF token verification; updated admin.php logout link to POST form.
+- **install.php**: Added `install.lock` file creation on successful install and checks for it on startup, preventing installer re-enable if `config.php` is lost.
+- **lang/tr.php**: Added Turkish translation for `err_rate_limited`.
+
+### Webhook Bug Fixes (July 2026)
+Fixed webhooks not actually sending with the configured HTTP method:
+- **config.php**: `$method` was read from settings but never applied to cURL (`CURLOPT_POST => true` was hardcoded). Now uses `CURLOPT_POST` for POST and `CURLOPT_CUSTOMREQUEST` for PUT/PATCH. Also removed dead duplicate `$debugInfo` block. Added IPv6 (AAAA) DNS fallback in `isSafeUrl()` when `gethostbynamel()` returns empty.
+- **assets/js/admin.js**: Fixed debug display — was reading wrong property names (`url`/`method`/`body` vs PHP's `request_url`/`request_method`/`request_body`). Added header display and `white-space: pre-wrap` for readable output.
+- **admin.php**: `toggle_bought` webhook call now checks result and sets `flash_warning` on failure.
+- **api/mark-bought.php**: Webhook failures logged via `error_log()` instead of silently discarded.
+
+### Config Template Extraction (July 2026)
+Generated config.php now stays in sync with the full helper set:
+- **config.template.php**: New committed template with `{{DB_HOST}}` etc. placeholders, containing ALL functions (CSRF, security headers, rate limiting, currency, webhooks, SSRF-safe URL validation, theme helpers). Replaces the old inline string that was missing ~20 functions.
+- **install.php**: Reads `config.template.php`, replaces placeholders via `str_replace` + `var_export()`, writes `config.php`. No more escaping hell or drift.
+- **config.php**: Fixed PDO error message to be generic (was leaking `$e->getMessage()`).
+- **AGENTS.md**: Updated architecture map with config.template.php.
 

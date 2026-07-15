@@ -866,6 +866,18 @@ tr:hover td {
     pointer-events: none;
 }
 
+.translation-table {
+    table-layout: fixed;
+}
+.translation-table th:first-child {
+    width: 25%;
+}
+.translation-table th:nth-child(2) {
+    width: 25%;
+}
+.translation-table th:last-child {
+    width: 50%;
+}
 .translation-table th {
     font-family: var(--font-heading);
 }
@@ -886,7 +898,7 @@ tr:hover td {
 .translation-textarea {
     width: 100%;
     resize: vertical;
-    min-height: 50px;
+    min-height: 80px;
     font-size: 0.9rem;
     padding: 0.5rem;
 }

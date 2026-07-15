@@ -147,7 +147,8 @@ try {
             confirm_purchase: <?= json_encode(__('confirm_purchase', 'Confirm Purchase')) ?>,
             network_error: <?= json_encode(__('js_network_error', 'Unable to contact the server. Please check your network connection.')) ?>,
             message_visibility_private: <?= json_encode(__('message_visibility_private', 'This message will only be visible to the wishlist owner (admin).')) ?>,
-            message_visibility_public: <?= json_encode(__('message_visibility_public', 'This message will be visible to everyone on the public wishlist.')) ?>
+            message_visibility_public: <?= json_encode(__('message_visibility_public', 'This message will be visible to everyone on the public wishlist.')) ?>,
+            err_rate_limited: <?= json_encode(__('err_rate_limited', 'Too many requests. Please try again later.')) ?>
         };
     </script>
 </head>
@@ -191,7 +192,7 @@ try {
                         
                         <?php if (!empty($shippingExpiresAt)): ?>
                             <div id="address-timer" data-expires="<?= strtotime($shippingExpiresAt) ?>" class="timer-badge">
-                                <?= sprintf(__('available_for', '⏱️ Available for: %s'), '<span id="timer-countdown">--:--:--</span>') ?>
+                                <?= sprintf(h(__('available_for', '⏱️ Available for: %s')), '<span id="timer-countdown">--:--:--</span>') ?>
                             </div>
                         <?php endif; ?>
                     </div>
@@ -251,7 +252,7 @@ try {
                                 <?php endif; ?>
 
                                 <?php if ($item['estimated_price'] !== null): ?>
-                                    <div class="item-price">~ <?= h($currencySymbol) ?><?= number_format((float)$item['estimated_price'], 2) ?></div>
+                                    <div class="item-price">~ <?= number_format((float)$item['estimated_price'], 2) ?><?= h($currencySymbol) ?></div>
                                 <?php endif; ?>
 
                                 <div class="item-actions">
@@ -293,10 +294,8 @@ try {
             
             <div id="modal-form-content">
                 <p class="text-sm text-secondary mb-4">
-                    <?= sprintf(
-                        __('modal_instructions', 'You are marking %s as purchased. To protect against accidental duplicates, you must provide verification.'), 
-                        '<strong id="modal-item-title" style="color: var(--text-primary);">[Item Title]</strong>'
-                    ) ?>
+                    <?= sprintf(h(__('modal_instructions', 'You are marking %s as purchased. To protect against accidental duplicates, you must provide verification.')), 
+                        '<strong id="modal-item-title" style="color: var(--text-primary);">[Item Title]</strong>') ?>
                 </p>
                 
                 <form id="form-mark-bought">

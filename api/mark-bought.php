@@ -55,6 +55,15 @@ header('Content-Type: application/json');
 
 // Get the POST payload
 $input = json_decode(file_get_contents('php://input'), true);
+
+// Rate limiting to prevent abuse
+$ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+$itemIdParam = $input['item_id'] ?? null;
+$rateLimitKey = 'mark-bought:' . $ip . ':' . ($itemIdParam ?? 'unknown');
+if (function_exists('checkRateLimit') && !checkRateLimit($rateLimitKey, 10, 60)) {
+    echo json_encode(['success' => false, 'message' => __('err_rate_limited', 'Too many requests. Please try again later.')]);
+    exit;
+}
 $itemId = $input['item_id'] ?? null;
 $buyerName = trim($input['buyer_name'] ?? '');
 $buyerProof = trim($input['buyer_proof'] ?? '');
@@ -122,6 +131,7 @@ try {
         'notes' => $item['notes'] ?? '',
     ];
     $buyerData = [
+        'event_id' => bin2hex(random_bytes(16)),
         'buyer_name' => $buyerName,
         'buyer_proof' => $buyerProof,
         'buyer_message' => $buyerMessage,
@@ -129,9 +139,11 @@ try {
         'bought_at' => $boughtAt,
         'source' => 'buyer',
     ];
-    // Send webhook asynchronously (fire and forget)
     if (function_exists('sendWebhook')) {
-        sendWebhook($itemData, $buyerData);
+        $whResult = sendWebhook($itemData, $buyerData);
+        if (!$whResult['success']) {
+            error_log("Wishlist webhook failed for item #{$itemId}: {$whResult['message']}");
+        }
     }
     
     echo json_encode(['success' => true, 'message' => __('success_marked_bought', 'Thank you! Item successfully marked as bought.')]);
